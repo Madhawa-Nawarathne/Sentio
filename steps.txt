@@ -1,0 +1,75 @@
+========================================================================
+            SENTIO - Social Media Platform Setup Instructions
+========================================================================
+
+Follow these step-by-step instructions to configure and run the SENTIO
+social media platform locally.
+
+------------------------------------------------------------------------
+STEP 1: MongoDB Atlas Database Setup (Free Tier Cloud Access)
+------------------------------------------------------------------------
+1. Go to the MongoDB Atlas website: https://www.mongodb.com/cloud/atlas
+2. Sign up or log in to your account.
+3. Click "Create a Deployment" or "Create a Cluster".
+4. Select the "M0" (Free) Shared tier.
+5. Choose your cloud provider (e.g., AWS) and region, then click "Create".
+6. Set up Security Quickstart:
+   - Create a Database User (Note down the Username and Password).
+   - Add your current IP address to the IP Access List (this allows your 
+     local application to connect to the cloud database).
+7. Once the cluster is deployed, click the "Connect" button next to your cluster.
+8. Choose "Drivers" (under Connect to your application).
+9. Copy the Connection String. It should look like this:
+   mongodb+srv://<username>:<password>@cluster0.xxxxxx.mongodb.net/?retryWrites=true&w=majority
+
+------------------------------------------------------------------------
+STEP 2: Backend Configuration
+------------------------------------------------------------------------
+1. Navigate to the `backend` folder:
+   cd backend
+2. Create a `.env` file by copying the template file:
+   copy .env.example .env (on Windows Powershell/CMD)
+   or
+   cp .env.example .env (on Linux/macOS)
+3. Open the newly created `.env` file and:
+   - Replace `<username>` and `<password>` in MONGODB_URI with your MongoDB Atlas credentials.
+   - Replace `your_jwt_secret_key_here` with a secure random string of your choice.
+   - (Optional) Customize the PORT (default is 5000).
+
+------------------------------------------------------------------------
+STEP 3: Installing Dependencies
+------------------------------------------------------------------------
+1. Install the backend dependencies:
+   cd backend
+   npm install
+
+2. Install the frontend dependencies:
+   cd ../frontend
+   npm install
+
+------------------------------------------------------------------------
+STEP 4: Running the Application
+------------------------------------------------------------------------
+You need to run both the backend and frontend servers simultaneously.
+
+1. Start the Backend Server (from the `backend` directory):
+   npm run dev
+   - This starts the Express server with nodemon at http://localhost:5000
+
+2. Start the Frontend Client (from the `frontend` directory in a new terminal):
+   npm run dev
+   - This starts the Vite dev server at http://localhost:3000
+
+------------------------------------------------------------------------
+STEP 5: Using the Platform
+------------------------------------------------------------------------
+1. Open http://localhost:3000 in your web browser.
+2. Register a new user account (Sign Up).
+3. Log in with your new user details.
+4. Share text posts using the "What's happening?" input on the home feed.
+5. Add comments and like posts.
+6. Explore other pages using the Left Sidebar: Search for other users,
+   view/edit your profile, and browse settings options.
+7. Note that stress detection and comment sentiment analysis dashboards on the
+   Right Sidebar display placeholders per requirements.
+========================================================================
