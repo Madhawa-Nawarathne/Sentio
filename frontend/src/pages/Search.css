@@ -1,0 +1,128 @@
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  font-size: 15px;
+  color: var(--text-main);
+  transition: var(--transition-smooth);
+}
+
+.search-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.trending-section {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.trending-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 16px;
+}
+
+.trend-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  border-bottom: 1px solid #edf2f7;
+  transition: var(--transition-smooth);
+}
+
+.trend-item:last-child {
+  border-bottom: none;
+}
+
+.trend-hashtag {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+.trend-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.follow-section {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.follow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.follow-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.follow-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.follow-user-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.follow-btn {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: var(--transition-smooth);
+  flex-shrink: 0;
+}
+
+.follow-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.follow-btn.following {
+  background-color: #edf2f7;
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+}
+
+.follow-btn.following:hover {
+  background-color: #fed7d7;
+  color: #c53030;
+  border-color: #f5c6cb;
+}
