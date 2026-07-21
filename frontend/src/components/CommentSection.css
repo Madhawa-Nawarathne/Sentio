@@ -94,6 +94,16 @@
   font-size: 13px;
 }
 
+.comment-author-link {
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.comment-author-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
 .comment-text {
   font-size: 14px;
   color: var(--text-main);

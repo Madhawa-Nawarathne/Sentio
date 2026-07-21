@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Send } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './CommentSection.css';
 
 const CommentSection = ({ post, onClose, onCommentAdded }) => {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -78,6 +80,13 @@ const CommentSection = ({ post, onClose, onCommentAdded }) => {
     });
   };
 
+  const handleAuthorClick = (username) => {
+    if (username) {
+      onClose();
+      navigate(`/profile/${username}`);
+    }
+  };
+
   return (
     <div className="comments-modal-overlay" onClick={onClose}>
       <div className="comments-container" onClick={(e) => e.stopPropagation()}>
@@ -112,8 +121,19 @@ const CommentSection = ({ post, onClose, onCommentAdded }) => {
                 </div>
                 <div className="comment-content">
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                    <span className="comment-author-name">{comment.author?.name || 'User'}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{comment.author?.username || 'user'}</span>
+                    <span
+                      className="comment-author-name comment-author-link"
+                      onClick={() => handleAuthorClick(comment.author?.username)}
+                    >
+                      {comment.author?.name || 'User'}
+                    </span>
+                    <span
+                      className="comment-author-link"
+                      style={{ fontSize: '11px', color: 'var(--text-muted)' }}
+                      onClick={() => handleAuthorClick(comment.author?.username)}
+                    >
+                      @{comment.author?.username || 'user'}
+                    </span>
                     <span className="comment-date">{formatDate(comment.createdAt)}</span>
                   </div>
                   <p className="comment-text">{comment.content}</p>

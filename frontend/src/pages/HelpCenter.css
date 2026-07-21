@@ -1,0 +1,274 @@
+.help-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.back-btn:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.help-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.help-hero {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #2c7a7b 100%);
+  color: #ffffff;
+  padding: 32px 24px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.help-hero-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.help-hero h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.help-hero p {
+  font-size: 14px;
+  opacity: 0.9;
+  max-width: 440px;
+}
+
+.help-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.crisis-card {
+  border-color: #fbd38d;
+  background: linear-gradient(to bottom, #fffaf0 0%, #ffffff 100%);
+}
+
+.help-card-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.help-card-header h4 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.help-card-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.alert-header .alert-icon {
+  color: #dd6b20;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.card-icon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.helpline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.helpline-item {
+  background: #ffffff;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.helpline-item:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.helpline-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.helpline-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.helpline-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: #feebc8;
+  color: #744210;
+  text-transform: uppercase;
+}
+
+.helpline-tag.govt {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+}
+
+.helpline-tag.free {
+  background-color: #c6f6d5;
+  color: #22543d;
+}
+
+.helpline-tag.youth {
+  background-color: #e9d8fd;
+  color: #553c9a;
+}
+
+.helpline-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.helpline-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--primary-color);
+  background-color: var(--primary-light);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  width: fit-content;
+}
+
+.helpline-link-btn:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.contact-box {
+  background-color: var(--bg-color);
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--card-border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.contact-box p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.email-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.email-contact-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Call Confirmation Modal */
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title-icon {
+  color: var(--primary-color);
+}
+
+.call-confirm-modal {
+  max-width: 420px;
+}
+
+.helpline-modal-badge {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: var(--primary-light);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.modal-btn-call {
+  background-color: #38a169;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modal-btn-call:hover {
+  background-color: #2f855a;
+}

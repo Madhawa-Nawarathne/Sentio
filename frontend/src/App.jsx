@@ -7,6 +7,8 @@ import Feed from './pages/Feed';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import FollowRequests from './pages/FollowRequests';
+import HelpCenter from './pages/HelpCenter';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -85,10 +87,26 @@ function App() {
             }
           />
           <Route
+            path="/follow-requests"
+            element={
+              <ProtectedRoute>
+                <FollowRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/settings"
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/help"
+            element={
+              <ProtectedRoute>
+                <HelpCenter />
               </ProtectedRoute>
             }
           />

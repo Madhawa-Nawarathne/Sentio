@@ -72,6 +72,26 @@
   box-shadow: var(--shadow-md);
 }
 
+.nav-badge {
+  background-color: #e53e3e;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  margin-left: auto;
+}
+
+.nav-item.active .nav-badge {
+  background-color: #ffffff;
+  color: var(--primary-color);
+}
+
 .btn-new-post {
   display: flex;
   align-items: center;
