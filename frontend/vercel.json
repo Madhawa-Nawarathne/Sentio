@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://sentio-backend-indol.vercel.app/api/$1"
+    },
+    {
       "source": "/(.*)",
-      "destination": "https://sentio-backend-indol.vercel.app/"
+      "destination": "/index.html"
     }
   ]
 }
