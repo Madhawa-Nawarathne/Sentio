@@ -85,7 +85,7 @@ STEP 4: Configure & Deploy Frontend to Vercel (No Credit Card)
      "rewrites": [
        {
          "source": "/api/:path*",
-         "destination": "https://YOUR-VERCEL-BACKEND-URL.vercel.app/api/:path*"
+         "destination": "https://sentio-backend-indol.vercel.app/api/:path*"
        },
        {
          "source": "/(.*)",
