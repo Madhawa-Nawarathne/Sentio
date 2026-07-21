@@ -1,0 +1,130 @@
+========================================================================
+       SENTIO - FREE VERCEL + MONGODB HOSTING GUIDE (NO CREDIT CARD)
+========================================================================
+
+This step-by-step guide will walk you through hosting the SENTIO web application
+(React Frontend + Node/Express Backend + MongoDB Cloud Database) 100% FOR FREE
+using Vercel & MongoDB Atlas.
+
+  *** NO CREDIT CARD IS REQUIRED FOR ANY OF THESE SERVICES ***
+
+  1. Database:  MongoDB Atlas (Free M0 Shared Cluster)
+  2. Backend:   Vercel Serverless (Free Node.js Express API)
+  3. Frontend:  Vercel Web Hosting (Free React/Vite SPA)
+  4. Code Host: GitHub.com (Free Code Repository)
+
+========================================================================
+PREREQUISITES (Free Accounts Needed - No Card Required)
+========================================================================
+1. GitHub (https://github.com)
+2. MongoDB Atlas (https://www.mongodb.com/cloud/atlas)
+3. Vercel (https://vercel.com) - Sign up using your GitHub account!
+
+========================================================================
+STEP 1: Push Your Code to GitHub
+========================================================================
+1. Open terminal in your Sentio root directory (`c:\Users\user\Desktop\Sentio`).
+2. Initialize git repository (if not already done):
+   git init
+3. Add all files and commit:
+   git add .
+   git commit -m "Configure Vercel serverless backend & frontend"
+4. Go to https://github.com/new and create a new repository named `sentio`.
+5. Connect your local code and push to GitHub:
+   git remote add origin https://github.com/YOUR_GITHUB_USERNAME/sentio.git
+   git branch -M main
+   git push -u origin main
+
+========================================================================
+STEP 2: Setup MongoDB Atlas (Cloud Database - Free)
+========================================================================
+1. Log in to https://cloud.mongodb.com
+2. Click "Create a Deployment" or "Create a Cluster" -> Choose "M0" (Free Tier).
+3. Under Security -> Database Access:
+   - Click "Add New Database User".
+   - Create a username and password (e.g. user: sentio_admin).
+   - Save these credentials securely!
+4. Under Security -> Network Access:
+   - Click "Add IP Address".
+   - Click "ALLOW ACCESS FROM ANYWHERE" (0.0.0.0/0).
+   - Note: This is required so Vercel's serverless functions can connect to your DB.
+   - Click "Confirm".
+5. Go to Database -> Click "Connect" -> Select "Drivers".
+6. Copy the connection string. It looks like:
+   mongodb+srv://<username>:<password>@cluster0.xxxxxx.mongodb.net/?retryWrites=true&w=majority
+7. Replace `<username>` and `<password>` with your database user credentials.
+
+========================================================================
+STEP 3: Deploy Backend Server to Vercel (No Credit Card)
+========================================================================
+1. Log in to https://vercel.com/dashboard with your GitHub account.
+2. Click "Add New..." -> Select "Project".
+3. Import your GitHub repository (`sentio`).
+4. Configure Project:
+   - Project Name: `sentio-backend` (or any name you prefer)
+   - Framework Preset: Select `Other`
+   - Root Directory: Click "Edit" and select `backend`
+5. Environment Variables:
+   Expand "Environment Variables" and add:
+   - Key: `MONGODB_URI`
+     Value: `mongodb+srv://<username>:<password>@cluster0.xxxxxx.mongodb.net/sentio?retryWrites=true&w=majority`
+   - Key: `JWT_SECRET`
+     Value: `your_secure_random_jwt_secret_key_here`
+6. Click "Deploy".
+7. Vercel will build and deploy your backend in ~1 minute.
+8. Once finished, copy your Backend Domain URL provided by Vercel:
+   Example: `https://sentio-backend.vercel.app`
+
+========================================================================
+STEP 4: Configure & Deploy Frontend to Vercel (No Credit Card)
+========================================================================
+1. Open `frontend/vercel.json` in your local project and update the rewrites rule:
+   Replace `https://sentio-backend.vercel.app` with your actual Vercel backend URL from Step 3:
+
+   {
+     "rewrites": [
+       {
+         "source": "/api/:path*",
+         "destination": "https://YOUR-VERCEL-BACKEND-URL.vercel.app/api/:path*"
+       },
+       {
+         "source": "/(.*)",
+         "destination": "/index.html"
+       }
+     ]
+   }
+
+2. Commit and push the updated `frontend/vercel.json` to GitHub:
+   git add frontend/vercel.json
+   git commit -m "Connect frontend to Vercel backend"
+   git push
+
+3. In https://vercel.com/dashboard, click "Add New..." -> "Project".
+4. Import your GitHub repository (`sentio`) again.
+5. Configure Project:
+   - Project Name: `sentio` (or `sentio-frontend`)
+   - Framework Preset: `Vite`
+   - Root Directory: Click "Edit" and select `frontend`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+6. Click "Deploy".
+7. Once finished, Vercel will give you your Live Website URL:
+   Example: `https://sentio.vercel.app`
+
+========================================================================
+IMPORTANT NOTES & TROUBLESHOOTING
+========================================================================
+- Completely Free (No Credit Card):
+  Vercel Hobby Plan and MongoDB Atlas M0 plan are permanently free without
+  requiring credit card details.
+
+- Fast Serverless Performance:
+  Vercel serverless backend executes instantly on demand.
+
+- MongoDB Connection:
+  Make sure you selected "ALLOW ACCESS FROM ANYWHERE" (0.0.0.0/0) in MongoDB
+  Network Access so Vercel serverless functions can connect.
+
+========================================================================
+CONGRATULATIONS! Your Sentio web platform is now live on Vercel!
+========================================================================
