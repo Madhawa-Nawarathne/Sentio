@@ -98,6 +98,71 @@
   margin-right: 4px;
 }
 
+.profile-stat-item.clickable-stat {
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.profile-stat-item.clickable-stat:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.user-list-modal {
+  max-width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-list-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 360px;
+  padding: 8px 0;
+}
+
+.user-list-empty {
+  text-align: center;
+  color: var(--text-light);
+  padding: 24px 0;
+  font-size: 14px;
+}
+
+.user-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  border: 1px solid transparent;
+}
+
+.user-list-item:hover {
+  background-color: var(--primary-light);
+  border-color: var(--card-border);
+}
+
+.user-list-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-list-item-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.user-list-item-handle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 /* Edit Modal */
 .modal-overlay {
   position: fixed;
@@ -124,6 +189,11 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.edit-profile-modal {
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-header {
@@ -174,4 +244,162 @@
 
 .modal-btn-save:hover {
   background-color: var(--primary-hover);
+}
+
+/* Upload styles */
+.upload-error {
+  background-color: #fff5f5;
+  color: #c53030;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #fed7d7;
+}
+
+.header-upload-area {
+  width: 100%;
+  height: 120px;
+  border: 2px dashed var(--card-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+  background-color: var(--bg-color);
+}
+
+.header-upload-area:hover {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.upload-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: var(--transition-smooth);
+}
+
+.header-upload-area:hover .upload-overlay {
+  opacity: 1;
+}
+
+.upload-hint {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.remove-upload-btn {
+  font-size: 12px;
+  color: #c53030;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  font-weight: 600;
+  transition: var(--transition-smooth);
+}
+
+.remove-upload-btn:hover {
+  text-decoration: underline;
+}
+
+.avatar-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-upload-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  border: 3px solid var(--card-border);
+  transition: var(--transition-smooth);
+}
+
+.avatar-upload-preview:hover {
+  border-color: var(--primary-color);
+}
+
+.avatar-upload-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-upload-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary-light) 0%, #b2f5ea 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+}
+
+.avatar-upload-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: var(--transition-smooth);
+}
+
+.avatar-upload-preview:hover .avatar-upload-overlay {
+  opacity: 1;
+}
+
+.avatar-upload-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.upload-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  width: fit-content;
+}
+
+.upload-btn:hover {
+  background-color: var(--primary-light);
 }

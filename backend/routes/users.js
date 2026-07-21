@@ -47,15 +47,19 @@ router.get('/me/follow-requests', authMiddleware, async (req, res) => {
 // @access  Private (so we can check follow relationship)
 router.get('/:username', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.params.username.toLowerCase() }).select('-password');
+    const user = await User.findOne({ username: req.params.username.toLowerCase() })
+      .populate('followers', 'username name bio avatar')
+      .populate('following', 'username name bio avatar')
+      .select('-password');
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     const currentUserId = req.user.id;
     const isOwnProfile = user._id.toString() === currentUserId;
-    const isFollowing = user.followers.map(id => id.toString()).includes(currentUserId);
-    const hasPendingRequest = user.followRequests.map(id => id.toString()).includes(currentUserId);
+    const isFollowing = user.followers.some(f => (f._id || f).toString() === currentUserId);
+    const hasPendingRequest = user.followRequests.some(f => (f._id || f).toString() === currentUserId);
 
     // Only show posts if it's own profile or if the viewer is a follower
     let posts = [];
@@ -76,7 +80,7 @@ router.get('/:username', authMiddleware, async (req, res) => {
 // @desc    Update user profile details
 // @access  Private
 router.put('/profile', authMiddleware, async (req, res) => {
-  const { name, bio, avatar } = req.body;
+  const { name, bio, avatar, header } = req.body;
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -86,6 +90,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
     if (name !== undefined) user.name = name;
     if (bio !== undefined) user.bio = bio;
     if (avatar !== undefined) user.avatar = avatar;
+    if (header !== undefined) user.header = header;
 
     const updatedUser = await user.save();
     
