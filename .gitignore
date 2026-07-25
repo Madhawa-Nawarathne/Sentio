@@ -141,3 +141,25 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# ===========================
+# Python AI Service
+# ===========================
+
+# AI Models (downloaded automatically)
+ai-service/emotion_detection_model/
+ai-service/bert_sentiment_model/
+
+# Python cache
+**/__pycache__/
+*.py[cod]
+
+# Python virtual environments
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/

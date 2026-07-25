@@ -1,0 +1,9 @@
+torch
+transformers
+flask
+flask-cors
+sentencepiece
+accelerate
+safetensors
+numpy
+gdown
