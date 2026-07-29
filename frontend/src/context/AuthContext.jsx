@@ -52,7 +52,12 @@ export const AuthProvider = ({ children }) => {
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || 'Login failed');
+      const err = new Error(data.message || 'Login failed');
+      if (data.needsVerification) {
+        err.needsVerification = true;
+        err.email = data.email;
+      }
+      throw err;
     }
 
     localStorage.setItem('token', data.token);
@@ -75,10 +80,51 @@ export const AuthProvider = ({ children }) => {
       throw new Error(data.message || 'Registration failed');
     }
 
+    if (data.needsVerification) {
+      return { needsVerification: true, email: data.email };
+    }
+
     localStorage.setItem('token', data.token);
     setToken(data.token);
     setUser(data.user);
     return data.user;
+  };
+
+  const verifyEmail = async (email, code) => {
+    const response = await fetch('/api/auth/verify-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, code })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Verification failed');
+    }
+
+    localStorage.setItem('token', data.token);
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  };
+
+  const resendVerificationCode = async (email) => {
+    const response = await fetch('/api/auth/resend-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to resend code');
+    }
+
+    return data;
   };
 
   const logout = () => {
@@ -112,6 +158,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    verifyEmail,
+    resendVerificationCode,
     logout,
     updateProfile,
     isAuthenticated: !!user

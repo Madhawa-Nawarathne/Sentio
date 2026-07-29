@@ -53,6 +53,19 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  // Email verification (added by collaborator's email-verification feature)
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationCode: {
+    type: String,
+    default: null
+  },
+  verificationCodeExpires: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
