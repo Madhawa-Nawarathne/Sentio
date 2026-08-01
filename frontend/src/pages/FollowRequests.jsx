@@ -3,14 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import RightSidebar from '../components/RightSidebar';
 import { useAuth } from '../context/AuthContext';
-import { Check, X, UserCheck, Users } from 'lucide-react';
+import { Check, X, UserCheck, Users, UserPlus } from 'lucide-react';
 import './FollowRequests.css';
 
 const FollowRequests = () => {
-  const { token } = useAuth();
+  const { user: currentUser, token } = useAuth();
   const navigate = useNavigate();
   const [followRequests, setFollowRequests] = useState([]);
+  const [requestStatuses, setRequestStatuses] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const currentUserId = currentUser?.id || currentUser?._id;
 
   const fetchFollowRequests = async () => {
     try {
@@ -34,17 +37,52 @@ const FollowRequests = () => {
     }
   }, [token]);
 
-  const handleAcceptRequest = async (requesterId) => {
+  const getStatus = (requester) => {
+    if (requestStatuses[requester._id]) {
+      return requestStatuses[requester._id];
+    }
+    return 'pending';
+  };
+
+  const handleAcceptRequest = async (requester) => {
     try {
-      const response = await fetch(`/api/users/${requesterId}/accept-follow`, {
+      const response = await fetch(`/api/users/${requester._id}/accept-follow`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        setFollowRequests(prev => prev.filter(r => r._id !== requesterId));
+        const isFollowing = requester.followers && requester.followers.some(f => (f._id || f).toString() === currentUserId?.toString());
+        const isRequested = requester.followRequests && requester.followRequests.some(f => (f._id || f).toString() === currentUserId?.toString());
+
+        if (isFollowing) {
+          setRequestStatuses(prev => ({ ...prev, [requester._id]: 'following' }));
+        } else if (isRequested) {
+          setRequestStatuses(prev => ({ ...prev, [requester._id]: 'requested' }));
+        } else {
+          setRequestStatuses(prev => ({ ...prev, [requester._id]: 'accepted' }));
+        }
       }
     } catch (err) {
       console.error('Error accepting follow request:', err);
+    }
+  };
+
+  const handleFollowBack = async (requesterId) => {
+    try {
+      const response = await fetch(`/api/users/${requesterId}/follow`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 'request_sent') {
+          setRequestStatuses(prev => ({ ...prev, [requesterId]: 'requested' }));
+        } else if (data.status === 'unfollowed') {
+          setRequestStatuses(prev => ({ ...prev, [requesterId]: 'accepted' }));
+        }
+      }
+    } catch (err) {
+      console.error('Error following back user:', err);
     }
   };
 
@@ -93,35 +131,57 @@ const FollowRequests = () => {
                 <UserCheck size={18} />
                 <span>{followRequests.length} pending request{followRequests.length !== 1 ? 's' : ''}</span>
               </div>
-              {followRequests.map(requester => (
-                <div key={requester._id} className="fr-card">
-                  <div
-                    className="fr-user-info"
-                    onClick={() => navigate(`/profile/${requester.username}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="avatar-placeholder" style={{ width: '44px', height: '44px', fontSize: '14px', flexShrink: 0 }}>
-                      {requester.avatar ? (
-                        <img src={requester.avatar} alt={requester.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-                      ) : (
-                        getInitials(requester.name)
+              {followRequests.map(requester => {
+                const status = getStatus(requester);
+                return (
+                  <div key={requester._id} className="fr-card">
+                    <div
+                      className="fr-user-info"
+                      onClick={() => navigate(`/profile/${requester.username}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="avatar-placeholder" style={{ width: '44px', height: '44px', fontSize: '14px', flexShrink: 0 }}>
+                        {requester.avatar ? (
+                          <img src={requester.avatar} alt={requester.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          getInitials(requester.name)
+                        )}
+                      </div>
+                      <div className="fr-user-text">
+                        <div className="fr-user-name">{requester.name || requester.username}</div>
+                        <div className="fr-user-handle">@{requester.username}</div>
+                      </div>
+                    </div>
+                    <div className="fr-actions">
+                      {status === 'pending' && (
+                        <>
+                          <button className="fr-accept-btn" onClick={() => handleAcceptRequest(requester)}>
+                            <Check size={15} /> Accept
+                          </button>
+                          <button className="fr-decline-btn" onClick={() => handleDeclineRequest(requester._id)}>
+                            <X size={15} /> Decline
+                          </button>
+                        </>
+                      )}
+                      {status === 'accepted' && (
+                        <button className="fr-followback-btn" onClick={() => handleFollowBack(requester._id)}>
+                          <UserPlus size={15} /> Follow Back
+                        </button>
+                      )}
+                      {status === 'requested' && (
+                        <button className="fr-requested-btn" onClick={() => handleFollowBack(requester._id)}>
+                          Requested
+                        </button>
+                      )}
+                      {status === 'following' && (
+                        <button className="fr-following-btn" disabled>
+                          <UserCheck size={15} /> Following
+                        </button>
                       )}
                     </div>
-                    <div className="fr-user-text">
-                      <div className="fr-user-name">{requester.name || requester.username}</div>
-                      <div className="fr-user-handle">@{requester.username}</div>
-                    </div>
                   </div>
-                  <div className="fr-actions">
-                    <button className="fr-accept-btn" onClick={() => handleAcceptRequest(requester._id)}>
-                      <Check size={15} /> Accept
-                    </button>
-                    <button className="fr-decline-btn" onClick={() => handleDeclineRequest(requester._id)}>
-                      <X size={15} /> Decline
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

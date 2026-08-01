@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './PostCard.css';
 
 const PostCard = ({ post, onLike, onDelete, onCommentClick, commentsCount = 0 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isLiked = post.likes && post.likes.includes(user?.id || user?._id);
   const isAuthor = post.author && (post.author._id === user?.id || post.author._id === user?._id || post.author === user?.id || post.author === user?._id);
@@ -22,9 +24,16 @@ const PostCard = ({ post, onLike, onDelete, onCommentClick, commentsCount = 0 })
   const authorUsername = post.author?.username || 'user';
   const authorAvatar = post.author?.avatar;
 
+  const handleAuthorClick = (e) => {
+    e.stopPropagation();
+    if (authorUsername) {
+      navigate(`/profile/${authorUsername}`);
+    }
+  };
+
   return (
     <article className="post-card">
-      <div className="post-avatar-col">
+      <div className="post-avatar-col" onClick={handleAuthorClick}>
         <div className="avatar-placeholder" style={{ width: '42px', height: '42px', fontSize: '15px' }}>
           {authorAvatar ? <img src={authorAvatar} alt={authorName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : getInitials(authorName)}
         </div>
@@ -32,7 +41,7 @@ const PostCard = ({ post, onLike, onDelete, onCommentClick, commentsCount = 0 })
 
       <div className="post-content-col">
         <div className="post-header">
-          <div className="post-author-info">
+          <div className="post-author-info" onClick={handleAuthorClick}>
             <span className="post-author-name">{authorName}</span>
             <span className="post-author-handle">@{authorUsername}</span>
             <span style={{ color: 'var(--text-light)' }}>•</span>

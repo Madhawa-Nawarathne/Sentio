@@ -16,6 +16,12 @@
 
 .post-avatar-col {
   flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.post-avatar-col:hover {
+  opacity: 0.9;
 }
 
 .post-content-col {
@@ -37,12 +43,19 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  cursor: pointer;
+}
+
+.post-author-info:hover .post-author-name {
+  color: var(--primary-color);
+  text-decoration: underline;
 }
 
 .post-author-name {
   font-weight: 700;
   color: var(--text-main);
   font-size: 15px;
+  transition: color 0.2s ease;
 }
 
 .post-author-handle {

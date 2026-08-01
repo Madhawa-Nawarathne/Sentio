@@ -33,7 +33,7 @@ router.get('/', authMiddleware, async (req, res) => {
 router.get('/me/follow-requests', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
-      .populate('followRequests', 'username name bio avatar');
+      .populate('followRequests', 'username name bio avatar followers followRequests sentFollowRequests');
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user.followRequests);
   } catch (err) {
