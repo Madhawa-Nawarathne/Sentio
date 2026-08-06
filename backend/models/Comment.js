@@ -6,24 +6,30 @@ const CommentSchema = new mongoose.Schema({
     ref: 'Post',
     required: true
   },
+
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
+
   content: {
     type: String,
     required: true,
     trim: true
   },
+
+  // AI sentiment analysis
   sentimentLabel: {
     type: String,
     default: ''
   },
+
   confidenceScore: {
     type: Number,
     default: null
   },
+
   createdAt: {
     type: Date,
     default: Date.now
