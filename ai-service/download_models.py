@@ -7,6 +7,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS = {
     "emotion_detection_model": "https://drive.google.com/drive/folders/1H4f1-0FchJ5n-2hSEcvybn3yFEnvZW3q",
     "bert_sentiment_model": "https://drive.google.com/drive/folders/1ZpOf_J0aQvIP1yYgSo5vlpEMVEdvvlhm",
+    "stress_detection_model": "https://drive.google.com/drive/folders/1Akk9GDGaDnVqoHLpNw4RMvCCPDGPDLqN",
 }
 
 print("=" * 60)
