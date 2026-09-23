@@ -1,7 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, Trash2 } from 'lucide-react';
+import {
+  Heart,
+  MessageCircle,
+  Trash2
+} from 'lucide-react';
+
 import { useAuth } from '../context/AuthContext';
+
 import './PostCard.css';
 
 const PostCard = ({
@@ -11,35 +17,91 @@ const PostCard = ({
   onCommentClick,
   commentsCount = 0
 }) => {
+
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const isLiked =
-    post.likes &&
-    post.likes.includes(user?.id || user?._id);
+  // ============================================================
+  // CURRENT USER
+  // ============================================================
 
-  const isAuthor =
-    post.author &&
-    (
-      post.author._id === user?.id ||
-      post.author._id === user?._id ||
-      post.author === user?.id ||
-      post.author === user?._id
+  const currentUserId =
+    user?.id ||
+    user?._id;
+
+
+  // ============================================================
+  // LIKE STATUS
+  // ============================================================
+
+  const isLiked =
+    Array.isArray(post?.likes) &&
+    currentUserId &&
+    post.likes.some(
+      (like) =>
+        String(like) === String(currentUserId)
     );
 
+
+  // ============================================================
+  // AUTHOR CHECK
+  // ============================================================
+
+  const postAuthorId =
+    post?.author?._id ||
+    post?.author;
+
+  const isAuthor =
+    postAuthorId &&
+    currentUserId &&
+    String(postAuthorId) ===
+      String(currentUserId);
+
+
+  // ============================================================
+  // GET INITIALS
+  // ============================================================
+
   const getInitials = (name) => {
-    if (!name) return 'U';
+
+    if (!name) {
+      return 'U';
+    }
 
     return name
       .split(' ')
-      .map(n => n[0])
+      .map(
+        (n) => n[0]
+      )
       .join('')
       .toUpperCase()
       .slice(0, 2);
+
   };
 
+
+  // ============================================================
+  // FORMAT DATE
+  // ============================================================
+
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString(
+
+    if (!dateString) {
+      return '';
+    }
+
+    const date =
+      new Date(dateString);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return '';
+    }
+
+    return date.toLocaleDateString(
       'en-US',
       {
         month: 'short',
@@ -49,37 +111,127 @@ const PostCard = ({
         minute: '2-digit'
       }
     );
+
   };
+
+
+  // ============================================================
+  // AUTHOR INFORMATION
+  // ============================================================
 
   const authorName =
-    post.author?.name || 'User';
+    post?.author?.name ||
+    'User';
 
   const authorUsername =
-    post.author?.username || 'user';
+    post?.author?.username ||
+    'user';
 
   const authorAvatar =
-    post.author?.avatar;
+    post?.author?.avatar;
+
+
+  // ============================================================
+  // AI ANALYSIS CHECK
+  // ============================================================
 
   const hasAIAnalysis =
-    post.stressLabel &&
-    post.emotionConfidence !== null &&
-    post.emotionConfidence !== undefined;
+    post?.stressLabel &&
+    post?.emotionConfidence !== null &&
+    post?.emotionConfidence !== undefined;
 
-  const handleAuthorClick = (e) => {
-    e.stopPropagation();
 
-    if (authorUsername) {
-      navigate(`/profile/${authorUsername}`);
+  // ============================================================
+  // SAFE NUMBER FORMATTER
+  // ============================================================
+
+  const formatScore = (value) => {
+
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return null;
     }
+
+    const number =
+      Number(value);
+
+    if (
+      !Number.isFinite(number)
+    ) {
+      return null;
+    }
+
+    return number.toFixed(2);
+
   };
 
+
+  // ============================================================
+  // AI ANALYTICS VALUES
+  // ============================================================
+
+  const emotionConfidence =
+    formatScore(
+      post?.emotionConfidence
+    );
+
+  const postStress =
+    formatScore(
+      post?.postStressScore
+    );
+
+  const commentImpact =
+    formatScore(
+      post?.commentSentimentImpact
+    );
+
+  const finalStress =
+    formatScore(
+      post?.finalStressScore
+    );
+
+
+  // ============================================================
+  // AUTHOR PROFILE CLICK
+  // ============================================================
+
+  const handleAuthorClick = (e) => {
+
+    e.stopPropagation();
+
+    if (!authorUsername) {
+      return;
+    }
+
+    navigate(
+      `/profile/${authorUsername}`
+    );
+
+  };
+
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+
   return (
+
     <article className="post-card">
+
+      {/* ====================================================== */}
+      {/* AVATAR */}
+      {/* ====================================================== */}
 
       <div
         className="post-avatar-col"
-        onClick={handleAuthorClick}
+        onClick={
+          handleAuthorClick
+        }
       >
+
         <div
           className="avatar-placeholder"
           style={{
@@ -88,7 +240,9 @@ const PostCard = ({
             fontSize: '15px'
           }}
         >
+
           {authorAvatar ? (
+
             <img
               src={authorAvatar}
               alt={authorName}
@@ -99,20 +253,40 @@ const PostCard = ({
                 objectFit: 'cover'
               }}
             />
+
           ) : (
-            getInitials(authorName)
+
+            getInitials(
+              authorName
+            )
+
           )}
+
         </div>
+
       </div>
 
+
+      {/* ====================================================== */}
+      {/* POST CONTENT */}
+      {/* ====================================================== */}
+
       <div className="post-content-col">
+
+
+        {/* ==================================================== */}
+        {/* POST HEADER */}
+        {/* ==================================================== */}
 
         <div className="post-header">
 
           <div
             className="post-author-info"
-            onClick={handleAuthorClick}
+            onClick={
+              handleAuthorClick
+            }
           >
+
             <span className="post-author-name">
               {authorName}
             </span>
@@ -121,86 +295,226 @@ const PostCard = ({
               @{authorUsername}
             </span>
 
-            <span style={{ color: 'var(--text-light)' }}>
+            <span
+              style={{
+                color:
+                  'var(--text-light)'
+              }}
+            >
               •
             </span>
 
             <span className="post-date">
-              {formatDate(post.createdAt)}
+              {formatDate(
+                post?.createdAt
+              )}
             </span>
+
           </div>
 
-          {isAuthor && onDelete && (
-            <button
-              onClick={() => onDelete(post._id)}
-              className="post-action-btn delete-btn"
-              title="Delete post"
-            >
-              <Trash2 size={16} />
-            </button>
-          )}
+
+          {/* ================================================== */}
+          {/* DELETE POST */}
+          {/* ================================================== */}
+
+          {isAuthor &&
+            onDelete && (
+
+              <button
+                onClick={() =>
+                  onDelete(
+                    post._id
+                  )
+                }
+                className="post-action-btn delete-btn"
+                title="Delete post"
+              >
+
+                <Trash2 size={16} />
+
+              </button>
+
+            )}
 
         </div>
 
+
+        {/* ==================================================== */}
+        {/* POST CONTENT */}
+        {/* ==================================================== */}
+
         <p className="post-text">
-          {post.content}
+          {post?.content}
         </p>
 
+
+        {/* ==================================================== */}
+        {/* AI POST ANALYSIS */}
+        {/* ==================================================== */}
+
         {hasAIAnalysis ? (
+
           <div className="stress-badge">
 
-            <strong>AI Emotion:</strong>{' '}
-            {post.stressLabel.charAt(0).toUpperCase() +
-              post.stressLabel.slice(1)}
 
-            {' • '}
+            {/* ================================================ */}
+            {/* AI EMOTION */}
+            {/* ================================================ */}
 
-            <strong>Confidence:</strong>{' '}
-            {Number(post.emotionConfidence).toFixed(2)}%
+            <div>
 
-            {post.stressScore !== null &&
-              post.stressScore !== undefined && (
-                <>
-                  <br />
-                  <strong>Calculated Stress:</strong>{' '}
-                  {Number(post.stressScore).toFixed(2)}%
-                </>
-              )}
+              <strong>
+                AI Emotion:
+              </strong>{' '}
+
+              {String(
+                post.stressLabel
+              )
+                .charAt(0)
+                .toUpperCase() +
+                String(
+                  post.stressLabel
+                ).slice(1)}
+
+              {' • '}
+
+              <strong>
+                Confidence:
+              </strong>{' '}
+
+              {emotionConfidence !== null
+                ? `${emotionConfidence}%`
+                : 'N/A'}
+
+            </div>
+
+
+            {/* ================================================ */}
+            {/* POST STRESS SCORE */}
+            {/* ================================================ */}
+
+            <div>
+
+              <strong>
+                Post Stress Score:
+              </strong>{' '}
+
+              {postStress !== null
+                ? `${postStress}%`
+                : 'N/A'}
+
+            </div>
+
+
+            {/* ================================================ */}
+            {/* COMMENT SENTIMENT IMPACT */}
+            {/* ================================================ */}
+
+            <div>
+
+              <strong>
+                Comment Sentiment Impact:
+              </strong>{' '}
+
+              {commentImpact !== null
+                ? `${commentImpact}%`
+                : 'No comments yet'}
+
+            </div>
+
+
+            {/* ================================================ */}
+            {/* FINAL STRESS SCORE */}
+            {/* ================================================ */}
+
+            <div>
+
+              <strong>
+                Final Stress Score:
+              </strong>{' '}
+
+              {finalStress !== null
+                ? `${finalStress}%`
+                : 'N/A'}
+
+            </div>
 
           </div>
+
         ) : (
+
           <span className="stress-badge">
             AI analysis unavailable
           </span>
+
         )}
+
+
+        {/* ==================================================== */}
+        {/* POST ACTIONS */}
+        {/* ==================================================== */}
 
         <div className="post-actions">
 
+
+          {/* ================================================== */}
+          {/* LIKE BUTTON */}
+          {/* ================================================== */}
+
           <button
-            onClick={() => onLike(post._id)}
+            onClick={() =>
+              onLike(
+                post._id
+              )
+            }
             className={`post-action-btn like-btn ${
-              isLiked ? 'liked' : ''
+              isLiked
+                ? 'liked'
+                : ''
             }`}
           >
+
             <Heart
               size={18}
-              fill={isLiked ? '#e53e3e' : 'none'}
+              fill={
+                isLiked
+                  ? '#e53e3e'
+                  : 'none'
+              }
             />
 
             <span>
-              {post.likes ? post.likes.length : 0}
+              {Array.isArray(
+                post?.likes
+              )
+                ? post.likes.length
+                : 0}
             </span>
+
           </button>
 
+
+          {/* ================================================== */}
+          {/* COMMENT BUTTON */}
+          {/* ================================================== */}
+
           <button
-            onClick={() => onCommentClick(post)}
+            onClick={() =>
+              onCommentClick(
+                post
+              )
+            }
             className="post-action-btn"
           >
-            <MessageCircle size={18} />
+
+            <MessageCircle
+              size={18}
+            />
 
             <span>
               {commentsCount}
             </span>
+
           </button>
 
         </div>
@@ -208,7 +522,9 @@ const PostCard = ({
       </div>
 
     </article>
+
   );
+
 };
 
 export default PostCard;

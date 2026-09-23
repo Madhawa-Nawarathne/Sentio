@@ -149,6 +149,7 @@ vite.config.ts.timestamp-*
 # AI Models (downloaded automatically)
 ai-service/emotion_detection_model/
 ai-service/bert_sentiment_model/
+ai-service/stress_detection_model/
 
 # Python cache
 **/__pycache__/

@@ -30,6 +30,11 @@ SENTIMENT_MODEL_PATH = os.path.join(
     "bert_sentiment_model"
 )
 
+STRESS_MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "stress_detection_model"
+)
+
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
 )
@@ -98,6 +103,34 @@ except Exception:
     print("-" * 60)
     raise
 
+# ============================================================
+# LOAD STRESS MODEL
+# ============================================================
+
+try:
+    print("\nLoading Stress Detection Model...")
+
+    stress_tokenizer = AutoTokenizer.from_pretrained(
+        STRESS_MODEL_PATH,
+        local_files_only=True
+    )
+
+    stress_model = AutoModelForSequenceClassification.from_pretrained(
+        STRESS_MODEL_PATH,
+        local_files_only=True
+    )
+
+    stress_model.to(DEVICE)
+    stress_model.eval()
+
+    print("Stress Detection Model Loaded Successfully!")
+
+except Exception:
+    print("\nFailed to load Stress Detection Model")
+    print("-" * 60)
+    traceback.print_exc()
+    print("-" * 60)
+    raise
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -215,7 +248,8 @@ def health():
         "success": True,
         "status": "healthy",
         "emotion_model": "loaded",
-        "sentiment_model": "loaded"
+        "sentiment_model": "loaded",
+        "stress_model": "loaded"
     })
 
 
@@ -324,11 +358,61 @@ def predict_sentiment():
             "error": "An error occurred while predicting sentiment."
         }), 500
 
+# ============================================================
+# STRESS PREDICTION
+# ============================================================
+
+@app.route(
+    "/predict-stress",
+    methods=["POST"]
+)
+def predict_stress():
+
+    try:
+        data = request.get_json(
+            silent=True
+        )
+
+        text, error = validate_text(data)
+
+        if error:
+            return jsonify({
+                "success": False,
+                "error": error
+            }), 400
+
+        prediction = get_predictions(
+            model=stress_model,
+            tokenizer=stress_tokenizer,
+            text=text,
+            top_k=2
+        )
+
+        return jsonify({
+            "success": True,
+            "input": {
+                "text": text
+            },
+            "result": {
+                "stress": prediction["label"],
+                "confidence": prediction["confidence"],
+                "top_predictions": prediction[
+                    "top_predictions"
+                ]
+            }
+        })
+
+    except Exception:
+        traceback.print_exc()
+
+        return jsonify({
+            "success": False,
+            "error": "An error occurred while predicting stress."
+        }), 500
 
 # ============================================================
 # COMBINED ANALYSIS
 # ============================================================
-
 @app.route(
     "/analyze",
     methods=["POST"]
@@ -402,6 +486,13 @@ def analyze():
             top_k=3
         )
 
+        stress_prediction = get_predictions(
+            model=stress_model,
+            tokenizer=stress_tokenizer,
+            text=post_text,
+            top_k=2
+        )
+
         return jsonify({
             "success": True,
 
@@ -432,6 +523,18 @@ def analyze():
                 "top_predictions": sentiment_prediction[
                     "top_predictions"
                 ]
+            },
+
+            "stress_analysis": {
+                "stress": stress_prediction[
+                    "label"
+                ],
+                "confidence": stress_prediction[
+                    "confidence"
+                ],
+                "top_predictions": stress_prediction[
+                    "top_predictions"
+                ]
             }
         })
 
@@ -442,7 +545,6 @@ def analyze():
             "success": False,
             "error": "An error occurred while analyzing the content."
         }), 500
-
 
 # ============================================================
 # START SERVER

@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 
 const Post = require('../models/Post');
@@ -6,77 +7,422 @@ const Comment = require('../models/Comment');
 const authMiddleware = require('./authMiddleware');
 
 const {
-  analyzeEmotion
+  analyzeEmotion,
+  analyzeStress
 } = require('../services/aiService');
 
 
 // ============================================================
-// STRESS SCORE CALCULATION
+// COMMENT SENTIMENT → STRESS IMPACT
+// ============================================================
+//
+// Probability-based methodology:
+//
+// Negative:
+//   Stress impact = P(negative)
+//
+// Neutral:
+//   Stress impact = 50
+//
+// Positive:
+//   Stress impact = 100 - P(positive)
+//
 // ============================================================
 
-function calculateStressScore(
-  emotion,
-  confidence
+function getSentimentStressImpact(sentiment, confidence) {
+
+  const normalizedSentiment =
+    String(sentiment || '')
+      .trim()
+      .toLowerCase();
+
+  const confidenceScore =
+    Number(confidence);
+
+  if (
+    !Number.isFinite(confidenceScore) ||
+    confidenceScore < 0 ||
+    confidenceScore > 100
+  ) {
+    return null;
+  }
+
+  switch (normalizedSentiment) {
+
+    case 'negative':
+      return confidenceScore;
+
+    case 'neutral':
+      return 50;
+
+    case 'positive':
+      return 100 - confidenceScore;
+
+    default:
+      return null;
+  }
+}
+
+
+// ============================================================
+// CALCULATE COMMENT SENTIMENT IMPACT
+// ============================================================
+
+async function calculateCommentSentimentImpact(postId) {
+
+  try {
+
+    const comments =
+      await Comment.find({
+        post: postId
+      }).select(
+        '_id sentimentLabel confidenceScore content createdAt'
+      );
+
+
+    console.log('');
+    console.log(
+      '============================================================'
+    );
+    console.log(
+      'COMMENT STRESS ANALYSIS'
+    );
+    console.log(
+      '============================================================'
+    );
+
+    console.log(
+      'Post ID:',
+      String(postId)
+    );
+
+    console.log(
+      'Total comments found:',
+      comments.length
+    );
+
+
+    // --------------------------------------------------------
+    // No comments
+    // --------------------------------------------------------
+
+    if (comments.length === 0) {
+
+      console.log(
+        'No comments found.'
+      );
+
+      console.log(
+        'Comment Impact: null'
+      );
+
+      console.log(
+        '============================================================'
+      );
+
+      return null;
+    }
+
+
+    // --------------------------------------------------------
+    // Calculate impact for every comment
+    // --------------------------------------------------------
+
+    const impacts = [];
+
+
+    comments.forEach(
+      (comment, index) => {
+
+        const rawSentiment =
+          comment.sentimentLabel;
+
+        const normalizedSentiment =
+          String(rawSentiment || '')
+            .trim()
+            .toLowerCase();
+
+        const confidence =
+          Number(comment.confidenceScore);
+
+        const impact =
+          getSentimentStressImpact(
+            normalizedSentiment,
+            confidence
+          );
+
+
+        console.log(
+          `Comment #${index + 1}`
+        );
+
+        console.log(
+          'Comment ID:',
+          String(comment._id)
+        );
+
+        console.log(
+          'Raw sentiment:',
+          rawSentiment
+        );
+
+        console.log(
+          'Normalized sentiment:',
+          normalizedSentiment
+        );
+
+        console.log(
+          'Confidence:',
+          comment.confidenceScore
+        );
+
+        console.log(
+          'Stress impact:',
+          impact
+        );
+
+        console.log(
+          '------------------------------------------------------------'
+        );
+
+
+        if (impact !== null) {
+
+          impacts.push(
+            impact
+          );
+        }
+
+      }
+    );
+
+
+    console.log(
+      'Valid comment impacts:',
+      impacts
+    );
+
+
+    // --------------------------------------------------------
+    // No valid sentiment data
+    // --------------------------------------------------------
+
+    if (impacts.length === 0) {
+
+      console.log(
+        'Comments exist, but no valid sentiment data was found.'
+      );
+
+      console.log(
+        'Comment Impact: null'
+      );
+
+      console.log(
+        '============================================================'
+      );
+
+      return null;
+    }
+
+
+    // --------------------------------------------------------
+    // Calculate average comment impact
+    // --------------------------------------------------------
+
+    const totalImpact =
+      impacts.reduce(
+        (sum, impact) =>
+          sum + impact,
+        0
+      );
+
+    const averageImpact =
+      totalImpact / impacts.length;
+
+    const roundedImpact =
+      Number(
+        averageImpact.toFixed(2)
+      );
+
+
+    console.log(
+      'Total impact:',
+      Number(totalImpact.toFixed(2))
+    );
+
+    console.log(
+      'Number of analyzed comments:',
+      impacts.length
+    );
+
+    console.log(
+      'FINAL COMMENT SENTIMENT IMPACT:',
+      roundedImpact
+    );
+
+    console.log(
+      '============================================================'
+    );
+
+
+    return roundedImpact;
+
+  } catch (error) {
+
+    console.error(
+      'Error calculating comment sentiment impact:',
+      error
+    );
+
+    return null;
+  }
+}
+
+
+// ============================================================
+// CALCULATE FINAL STRESS SCORE
+// ============================================================
+//
+// Current fusion:
+//
+//   70% = post stress model
+//   30% = average comment sentiment impact
+//
+// ============================================================
+
+function calculateFinalStressScore(
+  postStress,
+  commentImpact
 ) {
-  // Estimated stress association for each emotion.
-  // 0 = very low stress association
-  // 100 = very high stress association
-  const stressWeights = {
-    anger: 85,
-    annoyance: 55,
-    disappointment: 65,
-    disapproval: 55,
-    disgust: 60,
-    embarrassment: 60,
-    fear: 90,
-    grief: 95,
-    nervousness: 90,
-    remorse: 65,
-    sadness: 80,
 
-    confusion: 50,
-    realization: 40,
-    surprise: 35,
-    curiosity: 20,
+  if (
+    postStress === null ||
+    postStress === undefined ||
+    !Number.isFinite(
+      Number(postStress)
+    )
+  ) {
 
-    neutral: 25,
+    return null;
+  }
 
-    admiration: 5,
-    amusement: 5,
-    approval: 5,
-    caring: 10,
-    desire: 15,
-    excitement: 10,
-    gratitude: 5,
-    joy: 5,
-    love: 5,
-    optimism: 5,
-    pride: 5,
-    relief: 5
-  };
 
-  const normalizedEmotion =
-    String(emotion || '')
-      .toLowerCase()
-      .trim();
+  const numericPostStress =
+    Number(postStress);
 
-  const emotionStressWeight =
-    stressWeights[
-      normalizedEmotion
-    ] ?? 30;
 
-  const modelConfidence =
-    Number(confidence) || 0;
+  if (
+    commentImpact === null ||
+    commentImpact === undefined ||
+    !Number.isFinite(
+      Number(commentImpact)
+    )
+  ) {
 
-  const stressScore =
+    return Number(
+      numericPostStress.toFixed(2)
+    );
+  }
+
+
+  const numericCommentImpact =
+    Number(commentImpact);
+
+
+  const finalScore =
     (
-      emotionStressWeight *
-      modelConfidence
-    ) / 100;
+      numericPostStress * 0.70
+    ) +
+    (
+      numericCommentImpact * 0.30
+    );
 
-  return Math.round(
-    stressScore * 100
-  ) / 100;
+
+  return Number(
+    finalScore.toFixed(2)
+  );
+}
+
+
+// ============================================================
+// ENRICH ONE POST
+// ============================================================
+
+async function enrichPost(post) {
+
+  const postObject =
+    post.toObject
+      ? post.toObject()
+      : post;
+
+
+  const commentImpact =
+    await calculateCommentSentimentImpact(
+      postObject._id
+    );
+
+
+  const finalStress =
+    calculateFinalStressScore(
+      postObject.stressScore,
+      commentImpact
+    );
+
+
+  console.log('');
+
+  console.log(
+    '============================================================'
+  );
+
+  console.log(
+    'POST ANALYTICS RESULT'
+  );
+
+  console.log(
+    'Post ID:',
+    String(postObject._id)
+  );
+
+  console.log(
+    'Stress Label:',
+    postObject.stressLabel
+  );
+
+  console.log(
+    'Post Stress:',
+    postObject.stressScore
+  );
+
+  console.log(
+    'Comment Sentiment Impact:',
+    commentImpact
+  );
+
+  console.log(
+    'Final Stress:',
+    finalStress
+  );
+
+  console.log(
+    '============================================================'
+  );
+
+
+  return {
+
+    ...postObject,
+
+    postStressScore:
+      postObject.stressScore,
+
+    commentSentimentImpact:
+      commentImpact,
+
+    finalStressScore:
+      finalStress
+
+  };
 }
 
 
@@ -88,32 +434,46 @@ router.get(
   '/',
   authMiddleware,
   async (req, res) => {
+
     try {
-      const User = require(
-        '../models/User'
-      );
+
+      const User =
+        require('../models/User');
+
 
       const currentUser =
         await User.findById(
           req.user.id
-        ).select('following');
+        ).select(
+          'following'
+        );
+
 
       if (!currentUser) {
+
         return res.status(404).json({
           message: 'User not found'
         });
       }
 
+
       const authorIds = [
-        ...currentUser.following,
+
+        ...(currentUser.following || []),
+
         currentUser._id
+
       ];
 
-      const posts = await Post.find({
-        author: {
-          $in: authorIds
-        }
-      })
+
+      const posts =
+        await Post.find({
+
+          author: {
+            $in: authorIds
+          }
+
+        })
         .populate(
           'author',
           'username name avatar'
@@ -122,15 +482,60 @@ router.get(
           createdAt: -1
         });
 
-      res.json(posts);
+
+      console.log('');
+
+      console.log(
+        '============================================================'
+      );
+
+      console.log(
+        'GET /api/posts'
+      );
+
+      console.log(
+        'Posts received:',
+        posts.length
+      );
+
+      console.log(
+        '============================================================'
+      );
+
+
+      const enrichedPosts =
+        await Promise.all(
+
+          posts.map(
+            async (post) => {
+
+              return await enrichPost(
+                post
+              );
+
+            }
+          )
+
+        );
+
+
+      res.json(
+        enrichedPosts
+      );
+
 
     } catch (err) {
-      console.error(err);
+
+      console.error(
+        'GET /api/posts error:',
+        err
+      );
 
       res.status(500).json({
         message: 'Server error'
       });
     }
+
   }
 );
 
@@ -143,222 +548,429 @@ router.post(
   '/',
   authMiddleware,
   async (req, res) => {
-    const { content } = req.body;
+
+    const {
+      content
+    } = req.body;
+
 
     if (
       !content ||
+      typeof content !== 'string' ||
       content.trim() === ''
     ) {
+
       return res.status(400).json({
-        message:
-          'Post content cannot be empty'
+        message: 'Post content cannot be empty'
       });
     }
 
+
     try {
-      let emotionResult = null;
+
+      const cleanedContent =
+        content.trim();
+
+
+      let emotionResult =
+        null;
+
+      let stressResult =
+        null;
+
+
+      // ======================================================
+      // AI EMOTION ANALYSIS
+      // ======================================================
 
       try {
+
         emotionResult =
           await analyzeEmotion(
-            content.trim()
+            cleanedContent
           );
 
+
+        console.log('');
+
+        console.log(
+          '============================================================'
+        );
+
+        console.log(
+          'POST AI EMOTION RESULT'
+        );
+
+        console.log(
+          emotionResult
+        );
+
+        console.log(
+          'Emotion:',
+          emotionResult?.emotion
+        );
+
+        console.log(
+          'Confidence:',
+          emotionResult?.confidence
+        );
+
+        console.log(
+          '============================================================'
+        );
+
+
       } catch (aiError) {
+
         console.error(
           'AI emotion analysis failed:',
           aiError.message
         );
       }
 
-      // Calculate the final stress score
-      const calculatedStressScore =
-        emotionResult
-          ? calculateStressScore(
-              emotionResult.emotion,
-              emotionResult.confidence
+
+      // ======================================================
+      // AI STRESS ANALYSIS
+      // ======================================================
+
+      try {
+
+        stressResult =
+          await analyzeStress(
+            cleanedContent
+          );
+
+
+        console.log('');
+
+        console.log(
+          '============================================================'
+        );
+
+        console.log(
+          'POST AI STRESS RESULT'
+        );
+
+        console.log(
+          stressResult
+        );
+
+        console.log(
+          'Stress:',
+          stressResult?.stress
+        );
+
+        console.log(
+          'Confidence:',
+          stressResult?.confidence
+        );
+
+        // ----------------------------------------------------
+        // FULL STRESS RESULT DIAGNOSTIC
+        // ----------------------------------------------------
+
+        console.log(
+          'FULL STRESS RESULT FROM PYTHON:',
+          JSON.stringify(
+            stressResult,
+            null,
+            2
+          )
+        );
+
+        console.log(
+          '============================================================'
+        );
+
+
+      } catch (aiError) {
+
+        console.error(
+          'AI stress analysis failed:',
+          aiError.message
+        );
+      }
+
+
+      // ======================================================
+      // CONVERT STRESS MODEL OUTPUT TO STRESS SCORE
+      // ======================================================
+
+      const postStressScore =
+        stressResult
+          ? (
+              stressResult.stress === 'STRESS'
+                ? Number(stressResult.confidence)
+                : 100 - Number(stressResult.confidence)
             )
           : null;
 
-      const newPost = new Post({
-        author: req.user.id,
 
-        content:
-          content.trim(),
+      // ======================================================
+      // CREATE POST
+      // ======================================================
 
-        // Save detected emotion
-        stressLabel:
-          emotionResult
-            ? emotionResult.emotion
-            : '',
+      const newPost =
+        new Post({
 
-        // Save AI confidence separately
-        emotionConfidence:
-          emotionResult
-            ? emotionResult.confidence
-            : null,
+          author:
+            req.user.id,
 
-        // Save calculated stress score separately
-        stressScore:
-          calculatedStressScore
-      });
+          content:
+            cleanedContent,
+
+          stressLabel:
+            stressResult
+              ? stressResult.stress
+              : '',
+
+          emotionConfidence:
+            emotionResult
+              ? emotionResult.confidence
+              : null,
+
+          stressScore:
+            postStressScore
+
+        });
+
 
       const savedPost =
         await newPost.save();
 
+
       const populatedPost =
         await Post.findById(
           savedPost._id
-        ).populate(
+        )
+        .populate(
           'author',
           'username name avatar'
         );
 
+
+      const enrichedPost =
+        await enrichPost(
+          populatedPost
+        );
+
+
+      // ======================================================
+      // RESPONSE
+      // ======================================================
+
       res.status(201).json({
-        ...populatedPost.toObject(),
 
-        aiAnalysis: emotionResult
-          ? {
-              status: 'completed',
+        ...enrichedPost,
 
-              emotion:
-                emotionResult.emotion,
+        aiAnalysis: {
 
-              confidence:
-                emotionResult.confidence,
+          status:
+            stressResult || emotionResult
+              ? 'completed'
+              : 'unavailable',
 
-              stressScore:
-                calculatedStressScore,
+          emotion:
+            emotionResult
+              ? emotionResult.emotion
+              : null,
 
-              top_predictions:
-                emotionResult
-                  .top_predictions
-            }
-          : {
-              status: 'unavailable'
-            }
+          emotionConfidence:
+            emotionResult
+              ? emotionResult.confidence
+              : null,
+
+          stress:
+            stressResult
+              ? stressResult.stress
+              : null,
+
+          stressConfidence:
+            stressResult
+              ? stressResult.confidence
+              : null,
+
+          postStressScore:
+            postStressScore,
+
+          commentSentimentImpact:
+            null,
+
+          finalStressScore:
+            postStressScore,
+
+          top_predictions:
+            emotionResult
+              ? emotionResult.top_predictions
+              : []
+
+        }
+
       });
 
+
     } catch (err) {
-      console.error(err);
+
+      console.error(
+        'POST /api/posts error:',
+        err
+      );
 
       res.status(500).json({
         message: 'Server error'
       });
     }
+
   }
 );
 
 
 // ============================================================
-// POST /api/posts/:id/like
+// LIKE POST
 // ============================================================
 
 router.post(
   '/:id/like',
   authMiddleware,
   async (req, res) => {
+
     try {
+
       const post =
         await Post.findById(
           req.params.id
         );
 
+
       if (!post) {
+
         return res.status(404).json({
-          message:
-            'Post not found'
+          message: 'Post not found'
         });
       }
+
 
       const likeIndex =
         post.likes.indexOf(
           req.user.id
         );
 
+
       if (likeIndex > -1) {
+
         post.likes.splice(
           likeIndex,
           1
         );
 
       } else {
+
         post.likes.push(
           req.user.id
         );
       }
 
+
       await post.save();
 
-      res.json(post);
+
+      const enrichedPost =
+        await enrichPost(
+          post
+        );
+
+
+      res.json(
+        enrichedPost
+      );
+
 
     } catch (err) {
-      console.error(err);
+
+      console.error(
+        'Like post error:',
+        err
+      );
 
       res.status(500).json({
-        message:
-          'Server error'
+        message: 'Server error'
       });
     }
+
   }
 );
 
 
 // ============================================================
-// DELETE /api/posts/:id
+// DELETE POST
 // ============================================================
 
 router.delete(
   '/:id',
   authMiddleware,
   async (req, res) => {
+
     try {
+
       const post =
         await Post.findById(
           req.params.id
         );
 
+
       if (!post) {
+
         return res.status(404).json({
-          message:
-            'Post not found'
+          message: 'Post not found'
         });
       }
+
 
       if (
         post.author.toString() !==
         req.user.id
       ) {
+
         return res.status(401).json({
           message:
-            'User not authorized ' +
-            'to delete this post'
+            'User not authorized to delete this post'
         });
       }
+
 
       await Comment.deleteMany({
         post: post._id
       });
 
+
       await Post.findByIdAndDelete(
         req.params.id
       );
 
+
       res.json({
-        message:
-          'Post removed'
+        message: 'Post removed'
       });
+
 
     } catch (err) {
-      console.error(err);
+
+      console.error(
+        'Delete post error:',
+        err
+      );
 
       res.status(500).json({
-        message:
-          'Server error'
+        message: 'Server error'
       });
     }
+
   }
 );
 
+
+// ============================================================
+// EXPORT ROUTER
+// ============================================================
 
 module.exports = router;

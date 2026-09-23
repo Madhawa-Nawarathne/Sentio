@@ -43,7 +43,24 @@ async function analyzeSentiment(text) {
   return response.data.result;
 }
 
+async function analyzeStress(text) {
+  const response = await aiClient.post(
+    '/predict-stress',
+    { text }
+  );
+
+  if (!response.data.success) {
+    throw new Error(
+      response.data.error ||
+      'Stress analysis failed'
+    );
+  }
+
+  return response.data.result;
+}
+
 module.exports = {
   analyzeEmotion,
-  analyzeSentiment
+  analyzeSentiment,
+  analyzeStress
 };

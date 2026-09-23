@@ -8,6 +8,123 @@ const Comment = require('../models/Comment');
 const authMiddleware =
   require('./authMiddleware');
 
+// ============================================================
+// COMMENT SENTIMENT → STRESS IMPACT
+// ============================================================
+
+function getSentimentStressImpact(
+  sentiment,
+  confidence
+) {
+
+  const normalized =
+    String(sentiment || '')
+      .trim()
+      .toLowerCase();
+
+  const confidenceScore =
+    Number(confidence);
+
+  if (
+    !Number.isFinite(confidenceScore) ||
+    confidenceScore < 0 ||
+    confidenceScore > 100
+  ) {
+    return null;
+  }
+
+  if (normalized === 'negative') {
+    return confidenceScore;
+  }
+
+  if (normalized === 'neutral') {
+    return 50;
+  }
+
+  if (normalized === 'positive') {
+    return 100 - confidenceScore;
+  }
+
+  return null;
+}
+
+// ============================================================
+// CALCULATE COMMENT IMPACT
+// ============================================================
+
+function calculateCommentImpact(comments) {
+
+  const impacts = [];
+
+  comments.forEach((comment) => {
+
+    const impact =
+      getSentimentStressImpact(
+        comment.sentimentLabel,
+        comment.confidenceScore
+      );
+
+    if (impact !== null) {
+      impacts.push(impact);
+    }
+
+  });
+
+  if (impacts.length === 0) {
+    return null;
+  }
+
+  const total =
+    impacts.reduce(
+      (sum, value) =>
+        sum + value,
+      0
+    );
+
+  return Number(
+    (
+      total / impacts.length
+    ).toFixed(2)
+  );
+}
+
+// ============================================================
+// FINAL STRESS
+// ============================================================
+
+function calculateFinalStress(
+  postStress,
+  commentImpact
+) {
+
+  if (
+    postStress === null ||
+    postStress === undefined ||
+    !Number.isFinite(
+      Number(postStress)
+    )
+  ) {
+    return null;
+  }
+
+  if (
+    commentImpact === null ||
+    commentImpact === undefined
+  ) {
+
+    return Number(
+      Number(postStress).toFixed(2)
+    );
+
+  }
+
+  return Number(
+    (
+      0.7 * Number(postStress) +
+      0.3 * Number(commentImpact)
+    ).toFixed(2)
+  );
+}
 
 // ============================================================
 // GET /api/analytics/summary
@@ -17,78 +134,32 @@ router.get(
   '/summary',
   authMiddleware,
   async (req, res) => {
+
     try {
 
-      // Find all posts created by
-      // the currently logged-in user.
+      // ======================================================
+      // USER POSTS
+      // ======================================================
+
       const userPosts =
         await Post.find({
           author: req.user.id
-        }).select('_id stressScore');
+        }).select(
+          '_id stressScore'
+        );
 
       const postIds =
         userPosts.map(
-          (post) => post._id
+          post => post._id
         );
 
-
       // ======================================================
-      // OVERALL STRESS SCORE
-      // ======================================================
-
-      const validStressScores =
-        userPosts
-          .map(
-            (post) =>
-              Number(
-                post.stressScore
-              )
-          )
-          .filter(
-            (score) =>
-              Number.isFinite(score)
-          );
-
-      const totalPosts =
-        userPosts.length;
-
-      const analyzedPosts =
-        validStressScores.length;
-
-      let overallStressScore =
-        null;
-
-      if (
-        analyzedPosts > 0
-      ) {
-
-        const stressTotal =
-          validStressScores.reduce(
-            (total, score) =>
-              total + score,
-            0
-          );
-
-        overallStressScore =
-          Number(
-            (
-              stressTotal /
-              analyzedPosts
-            ).toFixed(2)
-          );
-      }
-
-
-      // ======================================================
-      // SENTIMENT BREAKDOWN
-      // Comments received on the user's posts
+      // GET COMMENTS FOR ALL POSTS
       // ======================================================
 
       let comments = [];
 
-      if (
-        postIds.length > 0
-      ) {
+      if (postIds.length > 0) {
 
         comments =
           await Comment.find({
@@ -97,27 +168,148 @@ router.get(
             },
 
             sentimentLabel: {
-              $ne: ''
-            },
-
-            confidenceScore: {
-              $ne: null
+              $in: [
+                'positive',
+                'neutral',
+                'negative'
+              ]
             }
           }).select(
-            'sentimentLabel confidenceScore'
+            'post sentimentLabel confidenceScore'
           );
+
       }
 
+      // ======================================================
+      // GROUP COMMENTS BY POST
+      // ======================================================
+
+      const commentsByPost = {};
+
+      comments.forEach(
+        comment => {
+
+          const postId =
+            String(comment.post);
+
+          if (
+            !commentsByPost[postId]
+          ) {
+
+            commentsByPost[postId] =
+              [];
+
+          }
+
+          commentsByPost[postId]
+            .push(comment);
+
+        }
+      );
+
+      // ======================================================
+      // FINAL STRESS FOR EACH POST
+      // ======================================================
+
+      const finalStressScores = [];
+
+      const postAnalytics = [];
+
+      userPosts.forEach(
+        post => {
+
+          const postId =
+            String(post._id);
+
+          const postComments =
+            commentsByPost[postId] ||
+            [];
+
+          const commentImpact =
+            calculateCommentImpact(
+              postComments
+            );
+
+          const finalStress =
+            calculateFinalStress(
+              post.stressScore,
+              commentImpact
+            );
+
+          if (
+            finalStress !== null
+          ) {
+
+            finalStressScores.push(
+              finalStress
+            );
+
+          }
+
+          postAnalytics.push({
+
+            postId:
+              post._id,
+
+            postStressScore:
+              post.stressScore,
+
+            commentSentimentImpact:
+              commentImpact,
+
+            finalStressScore:
+              finalStress,
+
+            analyzedComments:
+              postComments.length
+
+          });
+
+        }
+      );
+
+      // ======================================================
+      // OVERALL FINAL STRESS
+      // ======================================================
+
+      let overallStressScore =
+        null;
+
+      if (
+        finalStressScores.length > 0
+      ) {
+
+        const total =
+          finalStressScores.reduce(
+            (sum, score) =>
+              sum + score,
+            0
+          );
+
+        overallStressScore =
+          Number(
+            (
+              total /
+              finalStressScores.length
+            ).toFixed(2)
+          );
+
+      }
+
+      // ======================================================
+      // OVERALL COMMENT SENTIMENT
+      // ======================================================
 
       const sentimentCounts = {
+
         positive: 0,
         neutral: 0,
         negative: 0
+
       };
 
-
       comments.forEach(
-        (comment) => {
+        comment => {
 
           const sentiment =
             String(
@@ -150,17 +342,14 @@ router.get(
         }
       );
 
-
       const totalAnalyzedComments =
         sentimentCounts.positive +
         sentimentCounts.neutral +
         sentimentCounts.negative;
 
-
       let positivePercentage = 0;
       let neutralPercentage = 0;
       let negativePercentage = 0;
-
 
       if (
         totalAnalyzedComments > 0
@@ -195,22 +384,23 @@ router.get(
 
       }
 
-
       // ======================================================
-      // RETURN DASHBOARD DATA
+      // RESPONSE
       // ======================================================
 
       res.json({
 
         stress: {
+
           score:
             overallStressScore,
 
           totalPosts:
-            totalPosts,
+            userPosts.length,
 
           analyzedPosts:
-            analyzedPosts
+            finalStressScores.length
+
         },
 
         sentiment: {
@@ -229,7 +419,11 @@ router.get(
 
           counts:
             sentimentCounts
-        }
+
+        },
+
+        posts:
+          postAnalytics
 
       });
 
@@ -241,13 +435,15 @@ router.get(
       );
 
       res.status(500).json({
+
         message:
           'Failed to load analytics summary'
+
       });
 
     }
+
   }
 );
-
 
 module.exports = router;
