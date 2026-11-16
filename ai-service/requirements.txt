@@ -1,5 +1,4 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.12.0+cpu
+torch
 transformers
 flask
 flask-cors
@@ -8,3 +7,4 @@ accelerate
 safetensors
 numpy
 gdown
+gunicorn

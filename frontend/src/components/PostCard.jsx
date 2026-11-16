@@ -172,6 +172,7 @@ const PostCard = ({
   // ============================================================
 
 
+
   const postStress =
     formatScore(
       post?.postStressScore
@@ -352,20 +353,26 @@ const PostCard = ({
 
 
             {/* ================================================ */}
-            {/* AI STRESS DETECTION */}
+            {/* AI EMOTION */}
             {/* ================================================ */}
-              <div>
 
-                <strong>
-                 AI Stress Detection:
-                </strong>{' '}
+            <div>
 
-                {String(post.stressLabel)
-                  .charAt(0)
-                  .toUpperCase() +
-                  String(post.stressLabel).slice(1)}
+              <strong>
+                AI Emotion:
+              </strong>{' '}
+
+              {String(
+                post.stressLabel
+              )
+                .charAt(0)
+                .toUpperCase() +
+                String(
+                  post.stressLabel
+                ).slice(1)}
 
 
+            </div>
 
 
             {/* ================================================ */}

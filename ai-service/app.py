@@ -20,7 +20,10 @@ CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
+EMOTION_MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "emotion_detection_model"
+)
 
 SENTIMENT_MODEL_PATH = os.path.join(
     BASE_DIR,
@@ -35,6 +38,40 @@ STRESS_MODEL_PATH = os.path.join(
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
 )
+
+
+# ============================================================
+# LOAD EMOTION MODEL
+# ============================================================
+
+print("=" * 60)
+print("Starting Sentio AI Service...")
+print("=" * 60)
+
+try:
+    print("\nLoading Emotion Detection Model...")
+
+    emotion_tokenizer = AutoTokenizer.from_pretrained(
+        EMOTION_MODEL_PATH,
+        local_files_only=True
+    )
+
+    emotion_model = AutoModelForSequenceClassification.from_pretrained(
+        EMOTION_MODEL_PATH,
+        local_files_only=True
+    )
+
+    emotion_model.to(DEVICE)
+    emotion_model.eval()
+
+    print("Emotion Detection Model Loaded Successfully!")
+
+except Exception:
+    print("\nFailed to load Emotion Detection Model")
+    print("-" * 60)
+    traceback.print_exc()
+    print("-" * 60)
+    raise
 
 
 # ============================================================
@@ -56,29 +93,6 @@ try:
 
     sentiment_model.to(DEVICE)
     sentiment_model.eval()
-
-
-
-    # ============================================================
-# CORRECT SENTIMENT LABEL MAPPING
-# ============================================================
-
-    sentiment_model.config.id2label = {
-        0: "negative",
-        1: "neutral",
-        2: "positive"
-    }
-
-    sentiment_model.config.label2id = {
-        "negative": 0,
-        "neutral": 1,
-        "positive": 2
-    }
-
-    print(
-        "Sentiment label mapping:",
-        sentiment_model.config.id2label
-    )   
 
     print("Sentiment Analysis Model Loaded Successfully!")
 
@@ -217,9 +231,9 @@ def home():
         "service": "Sentio AI Service",
         "device": str(DEVICE),
         "models": {
-            "sentiment": "loaded",
-            "stress": "loaded"
-}
+            "emotion": "loaded",
+            "sentiment": "loaded"
+        }
     })
 
 
@@ -231,11 +245,66 @@ def home():
 def health():
 
     return jsonify({
-    "success": True,
-    "status": "healthy",
-    "sentiment_model": "loaded",
-    "stress_model": "loaded"
-})
+        "success": True,
+        "status": "healthy",
+        "emotion_model": "loaded",
+        "sentiment_model": "loaded",
+        "stress_model": "loaded"
+    })
+
+
+# ============================================================
+# EMOTION PREDICTION
+# ============================================================
+
+@app.route(
+    "/predict-emotion",
+    methods=["POST"]
+)
+def predict_emotion():
+
+    try:
+        data = request.get_json(
+            silent=True
+        )
+
+        text, error = validate_text(data)
+
+        if error:
+            return jsonify({
+                "success": False,
+                "error": error
+            }), 400
+
+        prediction = get_predictions(
+            model=emotion_model,
+            tokenizer=emotion_tokenizer,
+            text=text,
+            top_k=3
+        )
+
+        return jsonify({
+            "success": True,
+            "input": {
+                "text": text
+            },
+            "result": {
+                "emotion": prediction["label"],
+                "confidence": prediction["confidence"],
+                "top_predictions": prediction[
+                    "top_predictions"
+                ]
+            }
+        })
+
+    except Exception:
+        traceback.print_exc()
+
+        return jsonify({
+            "success": False,
+            "error": "An error occurred while predicting emotion."
+        }), 500
+
 
 # ============================================================
 # SENTIMENT PREDICTION
@@ -398,6 +467,12 @@ def analyze():
                 "error": "'post_text' cannot be empty."
             }), 400
 
+        emotion_prediction = get_predictions(
+            model=emotion_model,
+            tokenizer=emotion_tokenizer,
+            text=post_text,
+            top_k=3
+        )
 
         if comment_text:
             sentiment_input = comment_text
@@ -426,6 +501,17 @@ def analyze():
                 "comment_text": comment_text
             },
 
+            "emotion_analysis": {
+                "emotion": emotion_prediction[
+                    "label"
+                ],
+                "confidence": emotion_prediction[
+                    "confidence"
+                ],
+                "top_predictions": emotion_prediction[
+                    "top_predictions"
+                ]
+            },
 
             "sentiment_analysis": {
                 "sentiment": sentiment_prediction[

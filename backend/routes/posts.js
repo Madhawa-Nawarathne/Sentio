@@ -7,6 +7,7 @@ const Comment = require('../models/Comment');
 const authMiddleware = require('./authMiddleware');
 
 const {
+  analyzeEmotion,
   analyzeStress
 } = require('../services/aiService');
 
@@ -571,8 +572,61 @@ router.post(
         content.trim();
 
 
+      let emotionResult =
+        null;
+
       let stressResult =
         null;
+
+
+      // ======================================================
+      // AI EMOTION ANALYSIS
+      // ======================================================
+
+      try {
+
+        emotionResult =
+          await analyzeEmotion(
+            cleanedContent
+          );
+
+
+        console.log('');
+
+        console.log(
+          '============================================================'
+        );
+
+        console.log(
+          'POST AI EMOTION RESULT'
+        );
+
+        console.log(
+          emotionResult
+        );
+
+        console.log(
+          'Emotion:',
+          emotionResult?.emotion
+        );
+
+        console.log(
+          'Confidence:',
+          emotionResult?.confidence
+        );
+
+        console.log(
+          '============================================================'
+        );
+
+
+      } catch (aiError) {
+
+        console.error(
+          'AI emotion analysis failed:',
+          aiError.message
+        );
+      }
 
 
       // ======================================================
@@ -670,6 +724,11 @@ router.post(
               ? stressResult.stress
               : '',
 
+          emotionConfidence:
+            emotionResult
+              ? emotionResult.confidence
+              : null,
+
           stressScore:
             postStressScore
 
@@ -707,30 +766,45 @@ router.post(
         aiAnalysis: {
 
           status:
+            stressResult || emotionResult
+              ? 'completed'
+              : 'unavailable',
+
+          emotion:
+            emotionResult
+              ? emotionResult.emotion
+              : null,
+
+          emotionConfidence:
+            emotionResult
+              ? emotionResult.confidence
+              : null,
+
+          stress:
             stressResult
-            ? 'completed'
-            : 'unavailable',
+              ? stressResult.stress
+              : null,
 
-        stress:
-          stressResult
-            ? stressResult.stress
-            : null,
+          stressConfidence:
+            stressResult
+              ? stressResult.confidence
+              : null,
 
-        stressConfidence:
-          stressResult
-            ? stressResult.confidence
-            : null,
+          postStressScore:
+            postStressScore,
 
-        postStressScore:
-          postStressScore,
+          commentSentimentImpact:
+            null,
 
-        commentSentimentImpact:
-          null,
+          finalStressScore:
+            postStressScore,
 
-        finalStressScore:
-          postStressScore
+          top_predictions:
+            emotionResult
+              ? emotionResult.top_predictions
+              : []
 
-      }
+        }
 
       });
 
