@@ -343,91 +343,91 @@ const PostCard = ({
 
 
         {/* ==================================================== */}
-        {/* AI POST ANALYSIS */}
+        {/* AI POST ANALYSIS (ONLY VISIBLE TO POST AUTHOR) */}
         {/* ==================================================== */}
 
-        {hasAIAnalysis ? (
+        {isAuthor && (
+          hasAIAnalysis ? (
 
-          <div className="stress-badge">
+            <div className="stress-badge">
 
 
-            {/* ================================================ */}
-            {/* AI STRESS DETECTION */}
-            {/* ================================================ */}
-            <div>
+              {/* ================================================ */}
+              {/* AI STRESS DETECTION */}
+              {/* ================================================ */}
+              <div>
 
-              <strong>
-                AI Stress Detection:
-              </strong>{' '}
+                <strong>
+                  AI Stress Detection:
+                </strong>{' '}
 
-              {String(post.stressLabel)
-                .charAt(0)
-                .toUpperCase() +
-                String(post.stressLabel).slice(1)}
+                {String(post.stressLabel)
+                  .charAt(0)
+                  .toUpperCase() +
+                  String(post.stressLabel).slice(1)}
+
+              </div>
+
+
+              {/* ================================================ */}
+              {/* POST STRESS SCORE */}
+              {/* ================================================ */}
+
+              <div>
+
+                <strong>
+                  Post Stress Score:
+                </strong>{' '}
+
+                {postStress !== null
+                  ? `${postStress}%`
+                  : 'N/A'}
+
+              </div>
+
+
+              {/* ================================================ */}
+              {/* COMMENT SENTIMENT IMPACT */}
+              {/* ================================================ */}
+
+              <div>
+
+                <strong>
+                  Comment Sentiment Impact:
+                </strong>{' '}
+
+                {commentImpact !== null
+                  ? `${commentImpact}%`
+                  : 'No comments yet'}
+
+              </div>
+
+
+              {/* ================================================ */}
+              {/* FINAL STRESS SCORE */}
+              {/* ================================================ */}
+
+              <div>
+
+                <strong>
+                  Final Stress Score:
+                </strong>{' '}
+
+                {finalStress !== null
+                  ? `${finalStress}%`
+                  : 'N/A'}
+
+              </div>
 
             </div>
 
+          ) : (
 
+            <span className="stress-badge">
+              AI analysis unavailable
+            </span>
 
-
-            {/* ================================================ */}
-            {/* POST STRESS SCORE */}
-            {/* ================================================ */}
-
-            <div>
-
-              <strong>
-                Post Stress Score:
-              </strong>{' '}
-
-              {postStress !== null
-                ? `${postStress}%`
-                : 'N/A'}
-
-            </div>
-
-
-            {/* ================================================ */}
-            {/* COMMENT SENTIMENT IMPACT */}
-            {/* ================================================ */}
-
-            <div>
-
-              <strong>
-                Comment Sentiment Impact:
-              </strong>{' '}
-
-              {commentImpact !== null
-                ? `${commentImpact}%`
-                : 'No comments yet'}
-
-            </div>
-
-
-            {/* ================================================ */}
-            {/* FINAL STRESS SCORE */}
-            {/* ================================================ */}
-
-            <div>
-
-              <strong>
-                Final Stress Score:
-              </strong>{' '}
-
-              {finalStress !== null
-                ? `${finalStress}%`
-                : 'N/A'}
-
-            </div>
-
-          </div>
-
-        ) : (
-
-          <span className="stress-badge">
-            AI analysis unavailable
-          </span>
-
+          )
         )}
 
 
