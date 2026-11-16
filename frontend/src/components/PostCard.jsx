@@ -354,16 +354,18 @@ const PostCard = ({
             {/* ================================================ */}
             {/* AI STRESS DETECTION */}
             {/* ================================================ */}
-              <div>
+            <div>
 
-                <strong>
-                 AI Stress Detection:
-                </strong>{' '}
+              <strong>
+                AI Stress Detection:
+              </strong>{' '}
 
-                {String(post.stressLabel)
-                  .charAt(0)
-                  .toUpperCase() +
-                  String(post.stressLabel).slice(1)}
+              {String(post.stressLabel)
+                .charAt(0)
+                .toUpperCase() +
+                String(post.stressLabel).slice(1)}
+
+            </div>
 
 
 
