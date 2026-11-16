@@ -25,39 +25,65 @@ function getSentimentStressImpact(sentiment, confidence) {
   }
 }
 
-async function enrichPostWithAnalytics(post) {
-  const postObject = post.toObject ? post.toObject() : post;
-  const comments = await Comment.find({ post: postObject._id }).select('sentimentLabel confidenceScore');
+async function enrichPostsWithAnalytics(rawPosts, authorUser) {
+  if (!rawPosts || rawPosts.length === 0) {
+    return [];
+  }
 
-  const impactScores = [];
-  for (const comment of comments) {
-    const impact = getSentimentStressImpact(comment.sentimentLabel, comment.confidenceScore);
-    if (impact !== null && Number.isFinite(impact)) {
-      impactScores.push(impact);
+  const postIds = rawPosts.map(p => p._id);
+  const allComments = await Comment.find({ post: { $in: postIds } })
+    .select('post sentimentLabel confidenceScore')
+    .lean();
+
+  const commentsByPost = new Map();
+  for (const comment of allComments) {
+    const key = String(comment.post);
+    if (!commentsByPost.has(key)) {
+      commentsByPost.set(key, []);
     }
+    commentsByPost.get(key).push(comment);
   }
 
-  const commentImpact = impactScores.length > 0
-    ? Number((impactScores.reduce((sum, val) => sum + val, 0) / impactScores.length).toFixed(2))
-    : null;
+  return rawPosts.map(post => {
+    const postObject = post.toObject ? post.toObject() : post;
+    const postComments = commentsByPost.get(String(postObject._id)) || [];
 
-  const postStress = postObject.stressScore !== null && postObject.stressScore !== undefined && Number.isFinite(Number(postObject.stressScore))
-    ? Number(Number(postObject.stressScore).toFixed(2))
-    : null;
+    const impactScores = [];
+    for (const comment of postComments) {
+      const impact = getSentimentStressImpact(comment.sentimentLabel, comment.confidenceScore);
+      if (impact !== null && Number.isFinite(impact)) {
+        impactScores.push(impact);
+      }
+    }
 
-  let finalStress = null;
-  if (postStress !== null) {
-    finalStress = commentImpact !== null
-      ? Number(((postStress * 0.70) + (commentImpact * 0.30)).toFixed(2))
-      : postStress;
-  }
+    const commentImpact = impactScores.length > 0
+      ? Number((impactScores.reduce((sum, val) => sum + val, 0) / impactScores.length).toFixed(2))
+      : null;
 
-  return {
-    ...postObject,
-    postStressScore: postStress,
-    commentSentimentImpact: commentImpact,
-    finalStressScore: finalStress
-  };
+    const postStress = postObject.stressScore !== null && postObject.stressScore !== undefined && Number.isFinite(Number(postObject.stressScore))
+      ? Number(Number(postObject.stressScore).toFixed(2))
+      : null;
+
+    let finalStress = null;
+    if (postStress !== null) {
+      finalStress = commentImpact !== null
+        ? Number(((postStress * 0.70) + (commentImpact * 0.30)).toFixed(2))
+        : postStress;
+    }
+
+    return {
+      ...postObject,
+      author: {
+        _id: authorUser._id,
+        username: authorUser.username,
+        name: authorUser.name
+      },
+      commentsCount: postComments.length,
+      postStressScore: postStress,
+      commentSentimentImpact: commentImpact,
+      finalStressScore: finalStress
+    };
+  });
 }
 
 // @route   GET /api/users
@@ -121,9 +147,9 @@ router.get('/:username', authMiddleware, async (req, res) => {
     let posts = [];
     if (isOwnProfile || isFollowing) {
       const rawPosts = await Post.find({ author: user._id })
-        .populate('author', 'username name avatar')
-        .sort({ createdAt: -1 });
-      posts = await Promise.all(rawPosts.map(post => enrichPostWithAnalytics(post)));
+        .sort({ createdAt: -1 })
+        .lean();
+      posts = await enrichPostsWithAnalytics(rawPosts, user);
     }
 
     res.json({ user, posts, isFollowing, hasPendingRequest, isOwnProfile });

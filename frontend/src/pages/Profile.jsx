@@ -48,7 +48,17 @@ const Profile = () => {
       if (response.ok) {
         const data = await response.json();
         setProfileUser(data.user);
-        setPosts(data.posts || []);
+        const enrichedPosts = (data.posts || []).map(post => ({
+          ...post,
+          author: {
+            ...(typeof post.author === 'object' && post.author !== null ? post.author : {}),
+            _id: data.user._id,
+            username: data.user.username,
+            name: data.user.name,
+            avatar: data.user.avatar
+          }
+        }));
+        setPosts(enrichedPosts);
         setIsFollowing(data.isFollowing || false);
         setHasPendingRequest(data.hasPendingRequest || false);
 
@@ -60,10 +70,18 @@ const Profile = () => {
         setAvatarPreview(data.user.avatar || '');
         setHeaderPreview(data.user.header || '');
 
-        // Fetch comments count for each post
-        (data.posts || []).forEach(post => {
-          fetchCommentsCount(post._id);
+        // Set or fetch comments count for each post
+        const initialCounts = {};
+        enrichedPosts.forEach(post => {
+          if (typeof post.commentsCount === 'number') {
+            initialCounts[post._id] = post.commentsCount;
+          } else {
+            fetchCommentsCount(post._id);
+          }
         });
+        if (Object.keys(initialCounts).length > 0) {
+          setCommentsCounts(prev => ({ ...prev, ...initialCounts }));
+        }
       } else {
         navigate('/');
       }
