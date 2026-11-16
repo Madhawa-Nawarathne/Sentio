@@ -839,6 +839,9 @@ router.post(
       const post =
         await Post.findById(
           req.params.id
+        ).populate(
+          'author',
+          'username name avatar'
         );
 
 

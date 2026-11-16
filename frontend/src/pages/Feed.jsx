@@ -405,7 +405,13 @@ const Feed = () => {
                 p._id === postId
                   ? {
                       ...p,
-                      ...updated
+                      ...updated,
+                      author:
+                        updated?.author &&
+                        typeof updated.author === 'object' &&
+                        updated.author.username
+                          ? updated.author
+                          : p.author
                     }
                   : p
             )
