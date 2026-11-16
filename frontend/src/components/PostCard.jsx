@@ -174,7 +174,7 @@ const PostCard = ({
 
   const postStress =
     formatScore(
-      post?.postStressScore
+      post?.postStressScore ?? post?.stressScore
     );
 
   const commentImpact =
@@ -184,7 +184,7 @@ const PostCard = ({
 
   const finalStress =
     formatScore(
-      post?.finalStressScore
+      post?.finalStressScore ?? post?.stressScore
     );
 
 

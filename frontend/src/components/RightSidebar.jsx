@@ -1,9 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldAlert } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './RightSidebar.css';
 
-const RightSidebar = ({ analytics }) => {
+const RightSidebar = ({ analytics: externalAnalytics }) => {
 
+  const { token } = useAuth();
+  const [internalAnalytics, setInternalAnalytics] = useState(null);
+
+  useEffect(() => {
+    if (externalAnalytics !== undefined || !token) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchAnalytics = async () => {
+      try {
+        const response = await fetch('/api/analytics/summary', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (response.ok && isMounted) {
+          const data = await response.json();
+          setInternalAnalytics(data);
+        }
+      } catch (err) {
+        console.error('Error loading sidebar analytics:', err);
+      }
+    };
+
+    fetchAnalytics();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [externalAnalytics, token]);
+
+  const analytics = externalAnalytics ?? internalAnalytics;
   const loading = !analytics;
 
   // ==========================================================

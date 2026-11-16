@@ -2,7 +2,63 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 const authMiddleware = require('./authMiddleware');
+
+function getSentimentStressImpact(sentiment, confidence) {
+  const normalizedSentiment = String(sentiment || '').trim().toLowerCase();
+  const confidenceScore = Number(confidence);
+
+  if (!Number.isFinite(confidenceScore) || confidenceScore < 0 || confidenceScore > 100) {
+    return null;
+  }
+
+  switch (normalizedSentiment) {
+    case 'negative':
+      return confidenceScore;
+    case 'neutral':
+      return 50;
+    case 'positive':
+      return 100 - confidenceScore;
+    default:
+      return null;
+  }
+}
+
+async function enrichPostWithAnalytics(post) {
+  const postObject = post.toObject ? post.toObject() : post;
+  const comments = await Comment.find({ post: postObject._id }).select('sentimentLabel confidenceScore');
+
+  const impactScores = [];
+  for (const comment of comments) {
+    const impact = getSentimentStressImpact(comment.sentimentLabel, comment.confidenceScore);
+    if (impact !== null && Number.isFinite(impact)) {
+      impactScores.push(impact);
+    }
+  }
+
+  const commentImpact = impactScores.length > 0
+    ? Number((impactScores.reduce((sum, val) => sum + val, 0) / impactScores.length).toFixed(2))
+    : null;
+
+  const postStress = postObject.stressScore !== null && postObject.stressScore !== undefined && Number.isFinite(Number(postObject.stressScore))
+    ? Number(Number(postObject.stressScore).toFixed(2))
+    : null;
+
+  let finalStress = null;
+  if (postStress !== null) {
+    finalStress = commentImpact !== null
+      ? Number(((postStress * 0.70) + (commentImpact * 0.30)).toFixed(2))
+      : postStress;
+  }
+
+  return {
+    ...postObject,
+    postStressScore: postStress,
+    commentSentimentImpact: commentImpact,
+    finalStressScore: finalStress
+  };
+}
 
 // @route   GET /api/users
 // @desc    Get all users or search users (used for search and suggestion sidebar)
@@ -64,9 +120,10 @@ router.get('/:username', authMiddleware, async (req, res) => {
     // Only show posts if it's own profile or if the viewer is a follower
     let posts = [];
     if (isOwnProfile || isFollowing) {
-      posts = await Post.find({ author: user._id })
+      const rawPosts = await Post.find({ author: user._id })
         .populate('author', 'username name avatar')
         .sort({ createdAt: -1 });
+      posts = await Promise.all(rawPosts.map(post => enrichPostWithAnalytics(post)));
     }
 
     res.json({ user, posts, isFollowing, hasPendingRequest, isOwnProfile });
