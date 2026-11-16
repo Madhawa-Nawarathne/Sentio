@@ -136,9 +136,7 @@ const PostCard = ({
   // ============================================================
 
   const hasAIAnalysis =
-    post?.stressLabel &&
-    post?.emotionConfidence !== null &&
-    post?.emotionConfidence !== undefined;
+    Boolean(post?.stressLabel);
 
 
   // ============================================================
@@ -172,11 +170,6 @@ const PostCard = ({
   // ============================================================
   // AI ANALYTICS VALUES
   // ============================================================
-
-  const emotionConfidence =
-    formatScore(
-      post?.emotionConfidence
-    );
 
   const postStress =
     formatScore(
@@ -358,35 +351,20 @@ const PostCard = ({
 
 
             {/* ================================================ */}
-            {/* AI EMOTION */}
+            {/* AI STRESS DETECTION */}
             {/* ================================================ */}
+              <div>
 
-            <div>
+                <strong>
+                 AI Stress Detection:
+                </strong>{' '}
 
-              <strong>
-                AI Emotion:
-              </strong>{' '}
+                {String(post.stressLabel)
+                  .charAt(0)
+                  .toUpperCase() +
+                  String(post.stressLabel).slice(1)}
 
-              {String(
-                post.stressLabel
-              )
-                .charAt(0)
-                .toUpperCase() +
-                String(
-                  post.stressLabel
-                ).slice(1)}
-
-              {' • '}
-
-              <strong>
-                Confidence:
-              </strong>{' '}
-
-              {emotionConfidence !== null
-                ? `${emotionConfidence}%`
-                : 'N/A'}
-
-            </div>
+              </div>
 
 
             {/* ================================================ */}

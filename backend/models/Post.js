@@ -24,16 +24,10 @@ const PostSchema = new mongoose.Schema({
     default: null
   },
 
-  // Emotion detected by the AI model
+// Stress classification returned by the AI model
   stressLabel: {
     type: String,
     default: ''
-  },
-
-  // AI model confidence for the detected emotion
-  emotionConfidence: {
-    type: Number,
-    default: null
   },
 
   createdAt: {
