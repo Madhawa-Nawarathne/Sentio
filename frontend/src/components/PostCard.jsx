@@ -55,7 +55,7 @@ const PostCard = ({
     postAuthorId &&
     currentUserId &&
     String(postAuthorId) ===
-      String(currentUserId);
+    String(currentUserId);
 
 
   // ============================================================
@@ -170,6 +170,7 @@ const PostCard = ({
   // ============================================================
   // AI ANALYTICS VALUES
   // ============================================================
+
 
   const postStress =
     formatScore(
@@ -364,7 +365,7 @@ const PostCard = ({
                   .toUpperCase() +
                   String(post.stressLabel).slice(1)}
 
-              </div>
+
 
 
             {/* ================================================ */}
@@ -445,11 +446,10 @@ const PostCard = ({
                 post._id
               )
             }
-            className={`post-action-btn like-btn ${
-              isLiked
+            className={`post-action-btn like-btn ${isLiked
                 ? 'liked'
                 : ''
-            }`}
+              }`}
           >
 
             <Heart
