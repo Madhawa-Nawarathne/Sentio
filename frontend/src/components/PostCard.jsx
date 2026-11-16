@@ -354,18 +354,19 @@ const PostCard = ({
             {/* ================================================ */}
             {/* AI STRESS DETECTION */}
             {/* ================================================ */}
-              <div>
 
-                <strong>
-                 AI Stress Detection:
-                </strong>{' '}
+            <div>
 
-                {String(post.stressLabel)
-                  .charAt(0)
-                  .toUpperCase() +
-                  String(post.stressLabel).slice(1)}
+              <strong>
+                AI Stress Detection:
+              </strong>{' '}
 
+              {String(post.stressLabel)
+                .charAt(0)
+                .toUpperCase() +
+                String(post.stressLabel).slice(1)}
 
+            </div>
 
 
             {/* ================================================ */}
@@ -446,10 +447,11 @@ const PostCard = ({
                 post._id
               )
             }
-            className={`post-action-btn like-btn ${isLiked
+            className={`post-action-btn like-btn ${
+              isLiked
                 ? 'liked'
                 : ''
-              }`}
+            }`}
           >
 
             <Heart
