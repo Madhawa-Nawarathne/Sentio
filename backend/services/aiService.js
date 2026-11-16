@@ -11,21 +11,6 @@ const aiClient = axios.create({
   }
 });
 
-async function analyzeEmotion(text) {
-  const response = await aiClient.post(
-    '/predict-emotion',
-    { text }
-  );
-
-  if (!response.data.success) {
-    throw new Error(
-      response.data.error ||
-      'Emotion analysis failed'
-    );
-  }
-
-  return response.data.result;
-}
 
 async function analyzeSentiment(text) {
   const response = await aiClient.post(
@@ -60,7 +45,6 @@ async function analyzeStress(text) {
 }
 
 module.exports = {
-  analyzeEmotion,
   analyzeSentiment,
   analyzeStress
 };
