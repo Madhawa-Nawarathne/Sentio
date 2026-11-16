@@ -55,7 +55,7 @@ const PostCard = ({
     postAuthorId &&
     currentUserId &&
     String(postAuthorId) ===
-      String(currentUserId);
+    String(currentUserId);
 
 
   // ============================================================
@@ -136,9 +136,7 @@ const PostCard = ({
   // ============================================================
 
   const hasAIAnalysis =
-    post?.stressLabel &&
-    post?.emotionConfidence !== null &&
-    post?.emotionConfidence !== undefined;
+    Boolean(post?.stressLabel);
 
 
   // ============================================================
@@ -173,10 +171,7 @@ const PostCard = ({
   // AI ANALYTICS VALUES
   // ============================================================
 
-  const emotionConfidence =
-    formatScore(
-      post?.emotionConfidence
-    );
+
 
   const postStress =
     formatScore(
@@ -376,15 +371,6 @@ const PostCard = ({
                   post.stressLabel
                 ).slice(1)}
 
-              {' • '}
-
-              <strong>
-                Confidence:
-              </strong>{' '}
-
-              {emotionConfidence !== null
-                ? `${emotionConfidence}%`
-                : 'N/A'}
 
             </div>
 
@@ -467,11 +453,10 @@ const PostCard = ({
                 post._id
               )
             }
-            className={`post-action-btn like-btn ${
-              isLiked
+            className={`post-action-btn like-btn ${isLiked
                 ? 'liked'
                 : ''
-            }`}
+              }`}
           >
 
             <Heart
