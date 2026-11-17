@@ -277,6 +277,21 @@ const CommentSection = ({
       return '';
     }
 
+    const normalized = String(sentiment)
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, '_');
+
+    if (normalized === 'label_0' || normalized === 'negative') {
+      return 'Negative';
+    }
+    if (normalized === 'label_1' || normalized === 'neutral') {
+      return 'Neutral';
+    }
+    if (normalized === 'label_2' || normalized === 'label_3' || normalized === 'positive') {
+      return 'Positive';
+    }
+
     return (
       sentiment.charAt(0).toUpperCase() +
       sentiment.slice(1).toLowerCase()

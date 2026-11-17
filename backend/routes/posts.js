@@ -28,12 +28,28 @@ const {
 //
 // ============================================================
 
+function normalizeSentimentLabel(sentiment) {
+  const raw = String(sentiment || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+
+  if (raw === 'label_0' || raw === 'negative') {
+    return 'negative';
+  }
+  if (raw === 'label_1' || raw === 'neutral') {
+    return 'neutral';
+  }
+  if (raw === 'label_2' || raw === 'label_3' || raw === 'positive') {
+    return 'positive';
+  }
+  return raw;
+}
+
 function getSentimentStressImpact(sentiment, confidence) {
 
   const normalizedSentiment =
-    String(sentiment || '')
-      .trim()
-      .toLowerCase();
+    normalizeSentimentLabel(sentiment);
 
   const confidenceScore =
     Number(confidence);

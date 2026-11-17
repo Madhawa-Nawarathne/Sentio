@@ -5,8 +5,26 @@ const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const authMiddleware = require('./authMiddleware');
 
+function normalizeSentimentLabel(sentiment) {
+  const raw = String(sentiment || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+
+  if (raw === 'label_0' || raw === 'negative') {
+    return 'negative';
+  }
+  if (raw === 'label_1' || raw === 'neutral') {
+    return 'neutral';
+  }
+  if (raw === 'label_2' || raw === 'label_3' || raw === 'positive') {
+    return 'positive';
+  }
+  return raw;
+}
+
 function getSentimentStressImpact(sentiment, confidence) {
-  const normalizedSentiment = String(sentiment || '').trim().toLowerCase();
+  const normalizedSentiment = normalizeSentimentLabel(sentiment);
   const confidenceScore = Number(confidence);
 
   if (!Number.isFinite(confidenceScore) || confidenceScore < 0 || confidenceScore > 100) {

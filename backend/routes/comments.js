@@ -10,6 +10,24 @@ const {
   analyzeSentiment
 } = require('../services/aiService');
 
+function normalizeSentimentLabel(sentiment) {
+  const raw = String(sentiment || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+
+  if (raw === 'label_0' || raw === 'negative') {
+    return 'negative';
+  }
+  if (raw === 'label_1' || raw === 'neutral') {
+    return 'neutral';
+  }
+  if (raw === 'label_2' || raw === 'label_3' || raw === 'positive') {
+    return 'positive';
+  }
+  return raw;
+}
+
 
 // ============================================================
 // GET COMMENTS FOR POST
@@ -32,7 +50,15 @@ router.get(
           createdAt: 1
         });
 
-      res.json(comments);
+      const normalizedComments = comments.map((comment) => {
+        const obj = comment.toObject ? comment.toObject() : comment;
+        return {
+          ...obj,
+          sentimentLabel: normalizeSentimentLabel(obj.sentimentLabel)
+        };
+      });
+
+      res.json(normalizedComments);
 
     } catch (err) {
 
@@ -162,13 +188,9 @@ router.post(
       // ======================================================
 
       const sentimentLabel =
-        sentimentResult?.sentiment
-          ? String(
-              sentimentResult.sentiment
-            )
-              .trim()
-              .toLowerCase()
-          : '';
+        normalizeSentimentLabel(
+          sentimentResult?.sentiment
+        );
 
 
       const confidenceScore =

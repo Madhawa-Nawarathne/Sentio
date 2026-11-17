@@ -12,15 +12,31 @@ const authMiddleware =
 // COMMENT SENTIMENT → STRESS IMPACT
 // ============================================================
 
+function normalizeSentimentLabel(sentiment) {
+  const raw = String(sentiment || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+
+  if (raw === 'label_0' || raw === 'negative') {
+    return 'negative';
+  }
+  if (raw === 'label_1' || raw === 'neutral') {
+    return 'neutral';
+  }
+  if (raw === 'label_2' || raw === 'label_3' || raw === 'positive') {
+    return 'positive';
+  }
+  return raw;
+}
+
 function getSentimentStressImpact(
   sentiment,
   confidence
 ) {
 
   const normalized =
-    String(sentiment || '')
-      .trim()
-      .toLowerCase();
+    normalizeSentimentLabel(sentiment);
 
   const confidenceScore =
     Number(confidence);
@@ -161,22 +177,19 @@ router.get(
 
       if (postIds.length > 0) {
 
-        comments =
+        const rawComments =
           await Comment.find({
             post: {
               $in: postIds
-            },
-
-            sentimentLabel: {
-              $in: [
-                'positive',
-                'neutral',
-                'negative'
-              ]
             }
           }).select(
             'post sentimentLabel confidenceScore'
           );
+
+        comments = rawComments.filter(c => {
+          const label = normalizeSentimentLabel(c.sentimentLabel);
+          return label === 'positive' || label === 'neutral' || label === 'negative';
+        });
 
       }
 
@@ -312,12 +325,9 @@ router.get(
         comment => {
 
           const sentiment =
-            String(
-              comment.sentimentLabel ||
-              ''
-            )
-              .trim()
-              .toLowerCase();
+            normalizeSentimentLabel(
+              comment.sentimentLabel
+            );
 
           if (
             sentiment === 'positive'
