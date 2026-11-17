@@ -16,13 +16,13 @@ function normalizeSentimentLabel(sentiment) {
     .toLowerCase()
     .replace(/[\s-]+/g, '_');
 
-  if (raw === 'label_0' || raw === 'negative') {
+  if (raw === 'label_0' || raw === '0' || raw === 'negative') {
     return 'negative';
   }
-  if (raw === 'label_1' || raw === 'neutral') {
+  if (raw === 'label_1' || raw === '1' || raw === 'neutral') {
     return 'neutral';
   }
-  if (raw === 'label_2' || raw === 'label_3' || raw === 'positive') {
+  if (raw === 'label_2' || raw === 'label_3' || raw === '2' || raw === '3' || raw === 'positive') {
     return 'positive';
   }
   return raw;

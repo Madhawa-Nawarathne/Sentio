@@ -282,13 +282,13 @@ const CommentSection = ({
       .toLowerCase()
       .replace(/[\s-]+/g, '_');
 
-    if (normalized === 'label_0' || normalized === 'negative') {
+    if (normalized === 'label_0' || normalized === '0' || normalized === 'negative') {
       return 'Negative';
     }
-    if (normalized === 'label_1' || normalized === 'neutral') {
+    if (normalized === 'label_1' || normalized === '1' || normalized === 'neutral') {
       return 'Neutral';
     }
-    if (normalized === 'label_2' || normalized === 'label_3' || normalized === 'positive') {
+    if (normalized === 'label_2' || normalized === 'label_3' || normalized === '2' || normalized === '3' || normalized === 'positive') {
       return 'Positive';
     }
 
