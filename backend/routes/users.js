@@ -85,7 +85,7 @@ async function enrichPostsWithAnalytics(rawPosts, authorUser) {
     let finalStress = null;
     if (postStress !== null) {
       finalStress = commentImpact !== null
-        ? Number(((postStress * 0.70) + (commentImpact * 0.30)).toFixed(2))
+        ? Number(Math.min(100, Math.max(0, postStress + (commentImpact - 50) * 0.30)).toFixed(2))
         : postStress;
     }
 

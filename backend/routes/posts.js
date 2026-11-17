@@ -345,11 +345,13 @@ function calculateFinalStressScore(
 
 
   const finalScore =
-    (
-      numericPostStress * 0.70
-    ) +
-    (
-      numericCommentImpact * 0.30
+    Math.min(
+      100,
+      Math.max(
+        0,
+        numericPostStress +
+          (numericCommentImpact - 50) * 0.30
+      )
     );
 
 

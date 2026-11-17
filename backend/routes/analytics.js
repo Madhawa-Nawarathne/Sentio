@@ -134,11 +134,18 @@ function calculateFinalStress(
 
   }
 
+  const adjusted =
+    Math.min(
+      100,
+      Math.max(
+        0,
+        Number(postStress) +
+          0.3 * (Number(commentImpact) - 50)
+      )
+    );
+
   return Number(
-    (
-      0.7 * Number(postStress) +
-      0.3 * Number(commentImpact)
-    ).toFixed(2)
+    adjusted.toFixed(2)
   );
 }
 
