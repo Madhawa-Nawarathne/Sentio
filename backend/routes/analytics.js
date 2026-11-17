@@ -50,7 +50,7 @@ function getSentimentStressImpact(
   }
 
   if (normalized === 'negative') {
-    return confidenceScore;
+    return 50 + (confidenceScore / 2);
   }
 
   if (normalized === 'neutral') {
@@ -58,7 +58,7 @@ function getSentimentStressImpact(
   }
 
   if (normalized === 'positive') {
-    return 100 - confidenceScore;
+    return 50 - (confidenceScore / 2);
   }
 
   return null;

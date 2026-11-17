@@ -33,11 +33,11 @@ function getSentimentStressImpact(sentiment, confidence) {
 
   switch (normalizedSentiment) {
     case 'negative':
-      return confidenceScore;
+      return 50 + (confidenceScore / 2);
     case 'neutral':
       return 50;
     case 'positive':
-      return 100 - confidenceScore;
+      return 50 - (confidenceScore / 2);
     default:
       return null;
   }
