@@ -177,16 +177,6 @@ const PostCard = ({
       post?.postStressScore ?? post?.stressScore
     );
 
-  const commentImpact =
-    formatScore(
-      post?.commentSentimentImpact
-    );
-
-  const finalStress =
-    formatScore(
-      post?.finalStressScore ?? post?.stressScore
-    );
-
 
   // ============================================================
   // AUTHOR PROFILE CLICK
@@ -381,40 +371,6 @@ const PostCard = ({
 
                 {postStress !== null
                   ? `${postStress}%`
-                  : 'N/A'}
-
-              </div>
-
-
-              {/* ================================================ */}
-              {/* COMMENT SENTIMENT IMPACT */}
-              {/* ================================================ */}
-
-              <div>
-
-                <strong>
-                  Comment Sentiment Impact:
-                </strong>{' '}
-
-                {commentImpact !== null
-                  ? `${commentImpact}%`
-                  : 'No comments yet'}
-
-              </div>
-
-
-              {/* ================================================ */}
-              {/* FINAL STRESS SCORE */}
-              {/* ================================================ */}
-
-              <div>
-
-                <strong>
-                  Final Stress Score:
-                </strong>{' '}
-
-                {finalStress !== null
-                  ? `${finalStress}%`
                   : 'N/A'}
 
               </div>

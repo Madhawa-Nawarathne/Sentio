@@ -306,8 +306,7 @@ async function calculateCommentSentimentImpact(postId) {
 // ============================================================
 
 function calculateFinalStressScore(
-  postStress,
-  commentImpact
+  postStress
 ) {
 
   if (
@@ -326,37 +325,8 @@ function calculateFinalStressScore(
     Number(postStress);
 
 
-  if (
-    commentImpact === null ||
-    commentImpact === undefined ||
-    !Number.isFinite(
-      Number(commentImpact)
-    )
-  ) {
-
-    return Number(
-      numericPostStress.toFixed(2)
-    );
-  }
-
-
-  const numericCommentImpact =
-    Number(commentImpact);
-
-
-  const finalScore =
-    Math.min(
-      100,
-      Math.max(
-        0,
-        numericPostStress +
-          (numericCommentImpact - 50) * 0.30
-      )
-    );
-
-
   return Number(
-    finalScore.toFixed(2)
+    numericPostStress.toFixed(2)
   );
 }
 

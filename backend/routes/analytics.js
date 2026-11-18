@@ -105,12 +105,11 @@ function calculateCommentImpact(comments) {
 }
 
 // ============================================================
-// FINAL STRESS
+// POST STRESS ONLY (NO COMMENT SENTIMENT FUSION)
 // ============================================================
 
 function calculateFinalStress(
-  postStress,
-  commentImpact
+  postStress
 ) {
 
   if (
@@ -123,29 +122,8 @@ function calculateFinalStress(
     return null;
   }
 
-  if (
-    commentImpact === null ||
-    commentImpact === undefined
-  ) {
-
-    return Number(
-      Number(postStress).toFixed(2)
-    );
-
-  }
-
-  const adjusted =
-    Math.min(
-      100,
-      Math.max(
-        0,
-        Number(postStress) +
-          0.3 * (Number(commentImpact) - 50)
-      )
-    );
-
   return Number(
-    adjusted.toFixed(2)
+    Number(postStress).toFixed(2)
   );
 }
 
@@ -161,15 +139,19 @@ router.get(
     try {
 
       // ======================================================
-      // USER POSTS
+      // USER POSTS (SORTED NEWEST FIRST)
       // ======================================================
 
       const userPosts =
         await Post.find({
           author: req.user.id
-        }).select(
-          '_id stressScore'
-        );
+        })
+          .select(
+            '_id stressScore stressLabel createdAt'
+          )
+          .sort({
+            createdAt: -1
+          });
 
       const postIds =
         userPosts.map(
@@ -245,15 +227,22 @@ router.get(
             commentsByPost[postId] ||
             [];
 
-          const commentImpact =
-            calculateCommentImpact(
-              postComments
-            );
+          const postSentimentCounts = {
+            positive: 0,
+            neutral: 0,
+            negative: 0
+          };
+
+          postComments.forEach(c => {
+            const s = normalizeSentimentLabel(c.sentimentLabel);
+            if (s === 'positive') postSentimentCounts.positive++;
+            else if (s === 'neutral') postSentimentCounts.neutral++;
+            else if (s === 'negative') postSentimentCounts.negative++;
+          });
 
           const finalStress =
             calculateFinalStress(
-              post.stressScore,
-              commentImpact
+              post.stressScore
             );
 
           if (
@@ -271,17 +260,23 @@ router.get(
             postId:
               post._id,
 
-            postStressScore:
-              post.stressScore,
+            createdAt:
+              post.createdAt,
 
-            commentSentimentImpact:
-              commentImpact,
+            stressLabel:
+              post.stressLabel || '',
+
+            postStressScore:
+              finalStress,
 
             finalStressScore:
               finalStress,
 
             analyzedComments:
-              postComments.length
+              postComments.length,
+
+            sentimentCounts:
+              postSentimentCounts
 
           });
 

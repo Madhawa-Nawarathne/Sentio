@@ -512,9 +512,7 @@ const CommentSection = ({
                     {/* SENTIMENT */}
                     {/* ================================== */}
 
-                    {comment.sentimentLabel &&
-                    comment.confidenceScore !== null &&
-                    comment.confidenceScore !== undefined ? (
+                    {comment.sentimentLabel ? (
 
                       <span className="comment-sentiment-badge">
 
@@ -523,16 +521,6 @@ const CommentSection = ({
                         {formatSentiment(
                           comment.sentimentLabel
                         )}
-
-                        {' • '}
-
-                        Confidence:{' '}
-
-                        {Number(
-                          comment.confidenceScore
-                        ).toFixed(2)}
-
-                        %
 
                       </span>
 

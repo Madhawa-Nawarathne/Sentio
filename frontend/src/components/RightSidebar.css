@@ -6,25 +6,33 @@
   right: 0;
   background-color: var(--card-bg);
   border-left: 1px solid var(--card-border);
-  padding: 24px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
   overflow-y: auto;
   z-index: 9;
 }
 
 .wellness-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 14px 16px;
   box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 16px;
+  gap: 8px;
+}
+
+.sidebar-card-top-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .wellness-header {
@@ -32,42 +40,78 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   color: var(--text-muted);
-  width: 100%;
   text-align: left;
 }
 
-.circular-chart {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  margin: 10px 0;
+.wellness-subtitle {
+  font-size: 9px;
+  color: var(--text-light);
+  text-align: left;
+  margin-top: 2px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
-.circular-chart-svg {
+.sidebar-scope-select {
+  font-family: var(--font-sans, inherit);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  background-color: #f1f5f9;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.sidebar-scope-select:hover,
+.sidebar-scope-select:focus {
+  border-color: var(--text-muted);
+  background-color: #e2e8f0;
+}
+
+/* DIGITAL SPEEDOMETER GAUGE (NO POINTER) */
+.speedometer-gauge {
+  position: relative;
+  width: 164px;
+  height: 126px;
+  margin-top: 2px;
+}
+
+.speedometer-svg {
   width: 100%;
   height: 100%;
-  transform: rotate(-90deg);
+  overflow: visible;
 }
 
-.chart-bg {
+.speedometer-track {
   fill: none;
-  stroke: #edf2f7;
-  stroke-width: 3.8;
-}
-
-.chart-fill {
-  fill: none;
-  stroke: var(--text-light); /* Greyed out since analysis is empty */
-  stroke-width: 3.8;
+  stroke: #e2e8f0;
+  stroke-width: 11;
   stroke-linecap: round;
-  transition: stroke-dasharray 0.3s ease;
 }
 
-.chart-percentage {
+.speedometer-fill {
+  fill: none;
+  stroke-width: 11;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.45s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.35s ease;
+}
+
+.speedometer-scale-text {
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--text-light);
+  font-family: var(--font-display);
+}
+
+.speedometer-readout {
   position: absolute;
-  top: 50%;
+  top: 56%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
@@ -75,59 +119,110 @@
   align-items: center;
 }
 
-.chart-num {
-  font-size: 32px;
-  font-weight: 700;
+.speedometer-num {
+  font-size: 26px;
+  font-weight: 800;
   font-family: var(--font-display);
-  color: var(--text-muted);
+  line-height: 1.05;
+  transition: color 0.35s ease;
 }
 
-.chart-label {
-  font-size: 10px;
+.speedometer-unit {
+  font-size: 9px;
   text-transform: uppercase;
   color: var(--text-light);
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin-top: 2px;
 }
 
 .wellness-status-desc {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  margin-top: -4px;
+  transition: color 0.35s ease;
 }
 
+/* LINE CHART UNDER GAUGE */
+.stress-line-chart-box {
+  position: relative;
+  width: 100%;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px 6px;
+  margin-top: 2px;
+}
+
+.stress-line-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.stress-line-chart-svg {
+  width: 100%;
+  height: 74px;
+  display: block;
+}
+
+.chart-grid-line {
+  stroke: #e2e8f0;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.chart-empty-overlay {
+  position: absolute;
+  inset: 20px 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+/* SENTIMENT CARD */
 .sentiment-card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 14px 16px;
   box-shadow: var(--shadow-sm);
 }
 
 .sentiment-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 14px;
+  gap: 11px;
+  margin-top: 12px;
 }
 
 .sentiment-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .sentiment-label-info {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
 }
 
 .sentiment-bar-bg {
-  height: 8px;
+  height: 7px;
   background-color: #edf2f7;
   border-radius: 4px;
   overflow: hidden;
@@ -136,7 +231,7 @@
 .sentiment-bar-fill {
   height: 100%;
   border-radius: 4px;
-  width: 0%; /* Default 0% */
+  width: 0%;
   transition: width 0.4s ease;
 }
 
@@ -150,17 +245,6 @@
 
 .negative-bar {
   background-color: var(--text-light);
-}
-
-.empty-warning-box {
-  background-color: #f7fafc;
-  border: 1px dashed var(--text-light);
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  line-height: 1.4;
 }
 
 @media (max-width: 1024px) {
