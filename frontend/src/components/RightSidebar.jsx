@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { AlertTriangle, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './RightSidebar.css';
 
@@ -46,11 +44,10 @@ const getStressStatus = (score, hasData) => {
 };
 
 const RightSidebar = ({ analytics: externalAnalytics }) => {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const [internalAnalytics, setInternalAnalytics] = useState(null);
   const [timeframe, setTimeframe] = useState('all');
   const [commentPostScope, setCommentPostScope] = useState('all');
-  const [stressPopup, setStressPopup] = useState(null); // { level: 'moderate' | 'high', score: number }
 
   useEffect(() => {
     if (externalAnalytics !== undefined || !token) {
@@ -162,101 +159,6 @@ const RightSidebar = ({ analytics: externalAnalytics }) => {
   const safeStressScore = Math.min(Math.max(averageStress, 0), 100);
   const stressColor = getStressColor(safeStressScore, hasStressData && !loading);
   const stressStatus = getStressStatus(safeStressScore, hasStressData && !loading);
-
-  // ==========================================================
-  // 24-HOUR AVERAGE STRESS WARNING POPUP (MODERATE / HIGH)
-  // ==========================================================
-
-  const avg24hInfo = useMemo(() => {
-    const rawPosts = Array.isArray(analytics?.posts) ? analytics.posts : [];
-    const validPosts = rawPosts
-      .map((p) => ({
-        score: Number(p.postStressScore ?? p.stressScore),
-        timestamp: p.createdAt ? new Date(p.createdAt).getTime() : null
-      }))
-      .filter((p) => Number.isFinite(p.score));
-
-    if (validPosts.length === 0) {
-      return { has24hData: false, score: 0, level: 'low', count: 0 };
-    }
-
-    const latestPostTime = validPosts.reduce(
-      (max, p) => (p.timestamp && p.timestamp > max ? p.timestamp : max),
-      0
-    );
-    const referenceNow = Math.max(Date.now(), latestPostTime);
-    const cutoff24h = referenceNow - 24 * 60 * 60 * 1000;
-
-    const posts24h = validPosts.filter(
-      (p) => p.timestamp !== null && p.timestamp >= cutoff24h
-    );
-
-    if (posts24h.length === 0) {
-      return { has24hData: false, score: 0, level: 'low', count: 0 };
-    }
-
-    const sum = posts24h.reduce((acc, p) => acc + p.score, 0);
-    const avg = Number((sum / posts24h.length).toFixed(2));
-    const level = avg >= 65 ? 'high' : avg >= 35 ? 'moderate' : 'low';
-
-    return { has24hData: true, score: avg, level, count: posts24h.length };
-  }, [analytics]);
-
-  useEffect(() => {
-    if (loading || !avg24hInfo.has24hData) {
-      return;
-    }
-
-    if (avg24hInfo.level !== 'moderate' && avg24hInfo.level !== 'high') {
-      return;
-    }
-
-    const userId = user?.id || user?._id || 'anon';
-    const storageKey = `sentio_24h_stress_alert_${userId}`;
-    const previousRaw = sessionStorage.getItem(storageKey);
-    let shouldShow = true;
-
-    if (previousRaw) {
-      try {
-        const prev = JSON.parse(previousRaw);
-        // Show again only if level escalated (moderate -> high) or new posts were added in 24h
-        if (prev.level === avg24hInfo.level && prev.count === avg24hInfo.count) {
-          shouldShow = false;
-        }
-      } catch {
-        shouldShow = true;
-      }
-    }
-
-    if (shouldShow) {
-      sessionStorage.setItem(
-        storageKey,
-        JSON.stringify({ level: avg24hInfo.level, count: avg24hInfo.count, score: avg24hInfo.score })
-      );
-      if (window.__sentioSuppressNext24hPopup) {
-        window.__sentioSuppressNext24hPopup = false;
-        return;
-      }
-      setStressPopup({
-        level: avg24hInfo.level,
-        score: avg24hInfo.score
-      });
-    }
-  }, [loading, avg24hInfo, user]);
-
-  const handleTimeframeChange = (newTimeframe) => {
-    setTimeframe(newTimeframe);
-    if (
-      newTimeframe === '24h' &&
-      avg24hInfo.has24hData &&
-      (avg24hInfo.level === 'moderate' || avg24hInfo.level === 'high')
-    ) {
-      setStressPopup({
-        level: avg24hInfo.level,
-        score: avg24hInfo.score
-      });
-    }
-  };
 
   // ==========================================================
   // DIGITAL SPEEDOMETER GAUGE GEOMETRY (240° ARC, NO POINTER)
@@ -382,7 +284,7 @@ const RightSidebar = ({ analytics: externalAnalytics }) => {
           <select
             className="sidebar-scope-select"
             value={timeframe}
-            onChange={(e) => handleTimeframeChange(e.target.value)}
+            onChange={(e) => setTimeframe(e.target.value)}
             aria-label="Select stress timeframe"
           >
             {TIMEFRAME_OPTIONS.map((opt) => (
@@ -592,95 +494,6 @@ const RightSidebar = ({ analytics: externalAnalytics }) => {
           </div>
         </div>
       </div>
-
-      {/* ================================================== */}
-      {/* 24-HOUR STRESS WARNING POPUP MODAL */}
-      {/* ================================================== */}
-      {stressPopup && (
-        <div
-          className="stress-alert-overlay"
-          onClick={() => setStressPopup(null)}
-        >
-          <div
-            className="stress-alert-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="stress-alert-close"
-              onClick={() => setStressPopup(null)}
-              aria-label="Close warning"
-            >
-              <X size={18} />
-            </button>
-
-            <div
-              className="stress-alert-icon-wrap"
-              style={{
-                backgroundColor:
-                  stressPopup.level === 'high' ? '#fff7ed' : '#fefce8',
-                color: stressPopup.level === 'high' ? '#f97316' : '#eab308'
-              }}
-            >
-              <AlertTriangle size={28} />
-            </div>
-
-            <h3 className="stress-alert-title">
-              {stressPopup.level === 'high'
-                ? 'High 24-Hour Stress Level Detected'
-                : 'Moderate 24-Hour Stress Level Detected'}
-            </h3>
-
-            <div
-              className="stress-alert-score-pill"
-              style={{
-                backgroundColor:
-                  stressPopup.level === 'high' ? '#ffedd5' : '#fef9c3',
-                color: stressPopup.level === 'high' ? '#c2410c' : '#a16207'
-              }}
-            >
-              24hr Average Stress: {stressPopup.score.toFixed(1)}%
-            </div>
-
-            <p className="stress-alert-message">
-              {stressPopup.level === 'high'
-                ? 'Your average stress level over the last 24 hours is high. Please consider stopping using the platform for a while to rest and take care of your well-being.'
-                : 'Your average stress level over the last 24 hours is moderate. We recommend stopping using the platform for a while and taking a short break to recharge.'}
-            </p>
-
-            {stressPopup.level === 'high' && (
-              <div className="stress-alert-help-box">
-                <span>Need support or someone to talk to? </span>
-                <Link
-                  to="/help"
-                  className="stress-alert-help-link"
-                  onClick={() => setStressPopup(null)}
-                >
-                  Visit our Help Center →
-                </Link>
-              </div>
-            )}
-
-            <div className="stress-alert-actions">
-              {stressPopup.level === 'high' && (
-                <Link
-                  to="/help"
-                  className="stress-alert-btn stress-alert-btn-primary"
-                  onClick={() => setStressPopup(null)}
-                >
-                  Go to Help Center
-                </Link>
-              )}
-              <button
-                type="button"
-                className="stress-alert-btn stress-alert-btn-secondary"
-                onClick={() => setStressPopup(null)}
-              >
-                I'll Take a Break
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </aside>
   );
 };

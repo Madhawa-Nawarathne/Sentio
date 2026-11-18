@@ -331,7 +331,6 @@ const Feed = () => {
         );
 
         if (Number.isFinite(createdStress) && createdStress >= 65) {
-          window.__sentioSuppressNext24hPopup = true;
           setHighStressPostAlert({ score: createdStress });
         }
 
