@@ -132,14 +132,6 @@ const PostCard = ({
 
 
   // ============================================================
-  // AI ANALYSIS CHECK
-  // ============================================================
-
-  const hasAIAnalysis =
-    Boolean(post?.stressLabel);
-
-
-  // ============================================================
   // SAFE NUMBER FORMATTER
   // ============================================================
 
@@ -168,14 +160,28 @@ const PostCard = ({
 
 
   // ============================================================
-  // AI ANALYTICS VALUES
+  // AI ANALYTICS VALUES & COLOR CODING
   // ============================================================
-
 
   const postStress =
     formatScore(
       post?.postStressScore ?? post?.stressScore
     );
+
+  const numericStress =
+    postStress !== null ? Math.min(Math.max(Number(postStress), 0), 100) : null;
+
+  const hasAIAnalysis =
+    numericStress !== null;
+
+  const getStressBarColor = (score) => {
+    if (score === null) return '#cbd5e1';
+    if (score < 35) return '#22c55e'; // Green
+    if (score < 65) return '#eab308'; // Yellow
+    return '#f97316'; // Orange
+  };
+
+  const stressBarColor = getStressBarColor(numericStress);
 
 
   // ============================================================
@@ -339,40 +345,22 @@ const PostCard = ({
         {isAuthor && (
           hasAIAnalysis ? (
 
-            <div className="stress-badge">
+            <div className="post-stress-bar-container">
 
-
-              {/* ================================================ */}
-              {/* AI STRESS DETECTION */}
-              {/* ================================================ */}
-              <div>
-
-                <strong>
-                  AI Stress Detection:
-                </strong>{' '}
-
-                {String(post.stressLabel)
-                  .charAt(0)
-                  .toUpperCase() +
-                  String(post.stressLabel).slice(1)}
-
+              <div className="post-stress-bar-header">
+                <span className="post-stress-bar-title">
+                  Stress level of the post
+                </span>
               </div>
 
-
-              {/* ================================================ */}
-              {/* POST STRESS SCORE */}
-              {/* ================================================ */}
-
-              <div>
-
-                <strong>
-                  Post Stress Score:
-                </strong>{' '}
-
-                {postStress !== null
-                  ? `${postStress}%`
-                  : 'N/A'}
-
+              <div className="post-stress-bar-track">
+                <div
+                  className="post-stress-bar-fill"
+                  style={{
+                    width: `${numericStress}%`,
+                    backgroundColor: stressBarColor
+                  }}
+                />
               </div>
 
             </div>
