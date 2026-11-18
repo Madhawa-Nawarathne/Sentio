@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, X } from 'lucide-react';
 
 import Sidebar from '../components/Sidebar';
 import RightSidebar from '../components/RightSidebar';
@@ -31,6 +33,8 @@ const Feed = () => {
   const [activeCommentPost, setActiveCommentPost] = useState(null);
 
   const [commentsCounts, setCommentsCounts] = useState({});
+
+  const [highStressPostAlert, setHighStressPostAlert] = useState(null); // { score: number }
 
   const postInputRef = useRef(null);
 
@@ -316,6 +320,20 @@ const Feed = () => {
             [newPost._id]: 0
           })
         );
+
+
+        // ------------------------------------------------------
+        // Trigger popup warning if newly created post has High Stress (>= 65%)
+        // ------------------------------------------------------
+
+        const createdStress = Number(
+          newPost?.postStressScore ?? newPost?.stressScore
+        );
+
+        if (Number.isFinite(createdStress) && createdStress >= 65) {
+          window.__sentioSuppressNext24hPopup = true;
+          setHighStressPostAlert({ score: createdStress });
+        }
 
 
         // ------------------------------------------------------
@@ -926,6 +944,89 @@ const Feed = () => {
 
           />
 
+        )
+      }
+
+
+      {/* ====================================================== */}
+      {/* HIGH STRESS POST WARNING POPUP MODAL */}
+      {/* ====================================================== */}
+
+      {
+        highStressPostAlert && (
+          <div
+            className="stress-alert-overlay"
+            onClick={() => setHighStressPostAlert(null)}
+          >
+            <div
+              className="stress-alert-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="stress-alert-close"
+                onClick={() => setHighStressPostAlert(null)}
+                aria-label="Close warning"
+              >
+                <X size={18} />
+              </button>
+
+              <div
+                className="stress-alert-icon-wrap"
+                style={{
+                  backgroundColor: '#fff7ed',
+                  color: '#f97316'
+                }}
+              >
+                <AlertTriangle size={28} />
+              </div>
+
+              <h3 className="stress-alert-title">
+                High Stress Post Detected
+              </h3>
+
+              <div
+                className="stress-alert-score-pill"
+                style={{
+                  backgroundColor: '#ffedd5',
+                  color: '#c2410c'
+                }}
+              >
+                Post Stress Level: {highStressPostAlert.score.toFixed(1)}%
+              </div>
+
+              <p className="stress-alert-message">
+                Your post indicates a high level of stress. Please consider stopping using the platform for a while to take a break and focus on your well-being.
+              </p>
+
+              <div className="stress-alert-help-box">
+                <span>Need support or helpful resources? </span>
+                <Link
+                  to="/help"
+                  className="stress-alert-help-link"
+                  onClick={() => setHighStressPostAlert(null)}
+                >
+                  Visit our Help Center →
+                </Link>
+              </div>
+
+              <div className="stress-alert-actions">
+                <Link
+                  to="/help"
+                  className="stress-alert-btn stress-alert-btn-primary"
+                  onClick={() => setHighStressPostAlert(null)}
+                >
+                  Go to Help Center
+                </Link>
+                <button
+                  type="button"
+                  className="stress-alert-btn stress-alert-btn-secondary"
+                  onClick={() => setHighStressPostAlert(null)}
+                >
+                  I'll Take a Break
+                </button>
+              </div>
+            </div>
+          </div>
         )
       }
 

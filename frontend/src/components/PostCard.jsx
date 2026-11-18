@@ -1,9 +1,11 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Heart,
   MessageCircle,
-  Trash2
+  Trash2,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +22,7 @@ const PostCard = ({
 
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showHighStressModal, setShowHighStressModal] = useState(false);
 
   // ============================================================
   // CURRENT USER
@@ -180,6 +183,9 @@ const PostCard = ({
     if (score < 65) return '#eab308'; // Yellow
     return '#f97316'; // Orange
   };
+
+  const isHighStressPost =
+    numericStress !== null && numericStress >= 65;
 
   const stressBarColor = getStressBarColor(numericStress);
 
@@ -345,7 +351,15 @@ const PostCard = ({
         {isAuthor && (
           hasAIAnalysis ? (
 
-            <div className="post-stress-bar-container">
+            <div
+              className={`post-stress-bar-container ${isHighStressPost ? 'high-stress-clickable' : ''}`}
+              onClick={() => {
+                if (isHighStressPost) {
+                  setShowHighStressModal(true);
+                }
+              }}
+              title={isHighStressPost ? 'High stress detected — click for wellness info' : undefined}
+            >
 
               <div className="post-stress-bar-header">
                 <span className="post-stress-bar-title">
@@ -353,8 +367,9 @@ const PostCard = ({
                 </span>
                 <span
                   className="post-stress-bar-value"
-                  style={{ color: stressBarColor }}
+                  style={{ color: stressBarColor, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 >
+                  {isHighStressPost && <AlertTriangle size={12} />}
                   {postStress}%
                 </span>
               </div>
@@ -450,6 +465,82 @@ const PostCard = ({
         </div>
 
       </div>
+
+      {showHighStressModal && (
+        <div
+          className="stress-alert-overlay"
+          onClick={() => setShowHighStressModal(false)}
+        >
+          <div
+            className="stress-alert-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="stress-alert-close"
+              onClick={() => setShowHighStressModal(false)}
+              aria-label="Close warning"
+            >
+              <X size={18} />
+            </button>
+
+            <div
+              className="stress-alert-icon-wrap"
+              style={{
+                backgroundColor: '#fff7ed',
+                color: '#f97316'
+              }}
+            >
+              <AlertTriangle size={28} />
+            </div>
+
+            <h3 className="stress-alert-title">
+              High Stress Post Detected
+            </h3>
+
+            <div
+              className="stress-alert-score-pill"
+              style={{
+                backgroundColor: '#ffedd5',
+                color: '#c2410c'
+              }}
+            >
+              Post Stress Level: {postStress}%
+            </div>
+
+            <p className="stress-alert-message">
+              This post indicates a high level of stress. Please consider stopping using the platform for a while to take a break and focus on your well-being.
+            </p>
+
+            <div className="stress-alert-help-box">
+              <span>Need support or helpful resources? </span>
+              <Link
+                to="/help"
+                className="stress-alert-help-link"
+                onClick={() => setShowHighStressModal(false)}
+              >
+                Visit our Help Center →
+              </Link>
+            </div>
+
+            <div className="stress-alert-actions">
+              <Link
+                to="/help"
+                className="stress-alert-btn stress-alert-btn-primary"
+                onClick={() => setShowHighStressModal(false)}
+              >
+                Go to Help Center
+              </Link>
+              <button
+                type="button"
+                className="stress-alert-btn stress-alert-btn-secondary"
+                onClick={() => setShowHighStressModal(false)}
+              >
+                I'll Take a Break
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </article>
 

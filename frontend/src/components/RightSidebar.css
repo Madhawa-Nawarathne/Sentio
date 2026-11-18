@@ -247,6 +247,164 @@
   background-color: var(--text-light);
 }
 
+/* STRESS WARNING POPUP MODAL */
+.stress-alert-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.stress-alert-modal {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background-color: #ffffff;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 24px 22px 20px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  animation: stressModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes stressModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.stress-alert-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stress-alert-close:hover {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+}
+
+.stress-alert-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stress-alert-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.stress-alert-score-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 9999px;
+}
+
+.stress-alert-message {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 2px 0;
+}
+
+.stress-alert-help-box {
+  width: 100%;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: #9a3412;
+}
+
+.stress-alert-help-link {
+  font-weight: 700;
+  color: #ea580c;
+  text-decoration: underline;
+}
+
+.stress-alert-help-link:hover {
+  color: #c2410c;
+}
+
+.stress-alert-actions {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.stress-alert-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.stress-alert-btn-primary {
+  background-color: #f97316;
+  color: #ffffff;
+}
+
+.stress-alert-btn-primary:hover {
+  background-color: #ea580c;
+}
+
+.stress-alert-btn-secondary {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+}
+
+.stress-alert-btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.high-stress-clickable {
+  cursor: pointer;
+}
+
+.high-stress-clickable:hover {
+  border-color: #fdba74;
+}
+
 @media (max-width: 1024px) {
   .right-sidebar {
     display: none;
