@@ -147,6 +147,12 @@
   letter-spacing: 0.2px;
 }
 
+.post-stress-bar-value {
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
 .post-stress-bar-track {
   width: 100%;
   height: 8px;

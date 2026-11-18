@@ -351,6 +351,12 @@ const PostCard = ({
                 <span className="post-stress-bar-title">
                   Stress level of the post
                 </span>
+                <span
+                  className="post-stress-bar-value"
+                  style={{ color: stressBarColor }}
+                >
+                  {postStress}%
+                </span>
               </div>
 
               <div className="post-stress-bar-track">
